@@ -52,7 +52,7 @@ export const Login: React.FC = () => {
         
         <div className="max-w-7xl mx-auto p-4 relative z-10">
           <div className="text-center mb-8">
-            <img src="/bricksapp/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
+            <img src="https://ibb.co/sd65WVCD" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">{t('login.welcomeNewBricklayer')}</p>
           </div>
@@ -194,7 +194,7 @@ export const Login: React.FC = () => {
       <div className="max-w-md w-full relative z-10">
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-xl p-8 border border-white/30 dark:border-gray-700/30">
           <div className="text-center mb-8">
-            <img src="/bricksapp/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
+            <img src="https://ibb.co/sd65WVCD" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">{t('app.subtitle')}</p>
           </div>
