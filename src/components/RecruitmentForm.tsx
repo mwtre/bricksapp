@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building, User, Mail, Phone, FileText, Upload, Send, Hammer } from 'lucide-react';
+import { User, Mail, Phone, FileText, Upload, Send, Hammer } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const RecruitmentForm: React.FC = () => {
