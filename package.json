@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://yourusername.github.io/bricksapp",
+  "homepage": "https://mwtre.github.io/bricksapp",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
