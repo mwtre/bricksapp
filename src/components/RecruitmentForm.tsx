@@ -60,7 +60,7 @@ export const RecruitmentForm: React.FC = () => {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center mb-6">
-        <img src="/brickwall.png" alt="BricksApp Logo" className="h-16 w-auto mx-auto mb-4 filter brightness-0 invert" />
+        <img src="/bricksapp/brickwall.png" alt="BricksApp Logo" className="h-16 w-auto mx-auto mb-4 filter brightness-0 invert" />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('recruitment.title')}</h2>
         <p className="text-gray-600 dark:text-gray-400">{t('recruitment.subtitle')}</p>
       </div>

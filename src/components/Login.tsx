@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -16,6 +16,39 @@ export const Login: React.FC = () => {
   const [loginType, setLoginType] = useState<'management' | 'bricklayer'>('management');
   const { login, isLoading } = useAuth();
   const { t } = useLanguage();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Intro sound effect - plays once on fresh load
+  useEffect(() => {
+    const hasPlayedIntro = localStorage.getItem('bricksapp_intro_played');
+    
+    if (!hasPlayedIntro) {
+      // Create audio element
+      audioRef.current = new Audio('/bricksapp/introsounds.mp3');
+      audioRef.current.volume = 0.3; // Set volume to 30%
+      
+      // Play the intro sound
+      const playIntro = async () => {
+        try {
+          await audioRef.current?.play();
+          localStorage.setItem('bricksapp_intro_played', 'true');
+        } catch (error) {
+          console.log('Could not play intro sound:', error);
+        }
+      };
+      
+      // Small delay to ensure page is loaded
+      const timer = setTimeout(playIntro, 500);
+      
+      return () => {
+        clearTimeout(timer);
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+      };
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,11 +81,23 @@ export const Login: React.FC = () => {
         <div className="absolute top-4 right-4 flex items-center space-x-2 z-50">
           <ThemeToggle />
           <LanguageSwitcher />
+          {process.env.NODE_ENV === 'development' && (
+            <button
+              onClick={() => {
+                localStorage.removeItem('bricksapp_intro_played');
+                window.location.reload();
+              }}
+              className="p-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              title="Reset intro sound (dev only)"
+            >
+              🔊
+            </button>
+          )}
         </div>
         
         <div className="max-w-7xl mx-auto p-4 relative z-10">
           <div className="text-center mb-8">
-            <img src="/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
+            <img src="/bricksapp/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">{t('login.welcomeNewBricklayer')}</p>
           </div>
@@ -189,12 +234,24 @@ export const Login: React.FC = () => {
       <div className="absolute top-4 right-4 flex items-center space-x-2 z-50">
         <ThemeToggle />
         <LanguageSwitcher />
+        {process.env.NODE_ENV === 'development' && (
+          <button
+            onClick={() => {
+              localStorage.removeItem('bricksapp_intro_played');
+              window.location.reload();
+            }}
+            className="p-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            title="Reset intro sound (dev only)"
+          >
+            🔊
+          </button>
+        )}
       </div>
       
       <div className="max-w-md w-full relative z-10">
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-xl p-8 border border-white/30 dark:border-gray-700/30">
           <div className="text-center mb-8">
-            <img src="/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
+            <img src="/bricksapp/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">{t('app.subtitle')}</p>
           </div>
