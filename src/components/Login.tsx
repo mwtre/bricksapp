@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock } from 'lucide-react';
+import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock, HelpCircle, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -7,15 +7,23 @@ import { ThemeToggle } from './ThemeToggle';
 import { RecruitmentForm } from './RecruitmentForm';
 import { ConstructionTutorials } from './ConstructionTutorials';
 import { VideoBackground } from './VideoBackground';
+import { AppTutorial } from './AppTutorial';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showRecruitment, setShowRecruitment] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [loginType, setLoginType] = useState<'management' | 'bricklayer'>('management');
   const { login, isLoading } = useAuth();
-  const { t } = useLanguage();
+  const { t, setHasSelectedLanguage } = useLanguage();
+
+  const resetLanguageSelection = () => {
+    localStorage.removeItem('bricksapp-language-selected');
+    setHasSelectedLanguage(false);
+    window.location.reload();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +54,22 @@ export const Login: React.FC = () => {
         <VideoBackground videoSrc="/intro.mp4" playOnce={true} />
         
         <div className="absolute top-4 right-4 flex items-center space-x-2 z-50">
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="flex items-center text-sm text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
+            title="App Tutorial"
+          >
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Tutorial
+          </button>
+          <button
+            onClick={resetLanguageSelection}
+            className="flex items-center text-sm text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
+            title="Reset Language Selection (for testing)"
+          >
+            <RotateCcw className="h-4 w-4 mr-1" />
+            Reset Lang
+          </button>
           <ThemeToggle />
           <LanguageSwitcher />
         </div>
@@ -60,7 +84,10 @@ export const Login: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Recruitment Form - Full Width at Top */}
             <div className="lg:col-span-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-sm border border-white/30 dark:border-gray-700/30">
-              <RecruitmentForm />
+              <RecruitmentForm onApplicationSubmitted={() => {
+                // Force a refresh of the applications data
+                console.log('New application submitted - dashboard will refresh');
+              }} />
             </div>
 
             {/* App Information */}
@@ -178,6 +205,14 @@ export const Login: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Tutorial Modal */}
+        <AppTutorial
+          isOpen={showTutorial}
+          onClose={() => setShowTutorial(false)}
+          currentPage="login"
+          onPageChange={() => {}}
+        />
       </div>
     );
   }
@@ -187,6 +222,22 @@ export const Login: React.FC = () => {
       <VideoBackground videoSrc="/intro.mp4" playOnce={true} />
       
       <div className="absolute top-4 right-4 flex items-center space-x-2 z-50">
+        <button
+          onClick={() => setShowTutorial(true)}
+          className="flex items-center text-sm text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
+          title="App Tutorial"
+        >
+          <HelpCircle className="h-4 w-4 mr-1" />
+          Tutorial
+        </button>
+        <button
+          onClick={resetLanguageSelection}
+          className="flex items-center text-sm text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
+          title="Reset Language Selection (for testing)"
+        >
+          <RotateCcw className="h-4 w-4 mr-1" />
+          Reset Lang
+        </button>
         <ThemeToggle />
         <LanguageSwitcher />
       </div>
@@ -339,6 +390,14 @@ export const Login: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Tutorial Modal */}
+      <AppTutorial
+        isOpen={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        currentPage="login"
+        onPageChange={() => {}}
+      />
     </div>
   );
 };

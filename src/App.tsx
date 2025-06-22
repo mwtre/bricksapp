@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Login } from './components/Login';
 import { Layout } from './components/Layout';
 import { BricklayerDashboard } from './components/dashboards/BricklayerDashboard';
@@ -10,10 +10,21 @@ import { ProjectsPage } from './components/pages/ProjectsPage';
 import { TeamPage } from './components/pages/TeamPage';
 import { ApplicationsPage } from './components/pages/ApplicationsPage';
 import { RecruitmentForm } from './components/RecruitmentForm';
+import { LanguageSelectionModal } from './components/LanguageSelectionModal';
 
 function AppContent() {
   const { user } = useAuth();
+  const { hasSelectedLanguage, setHasSelectedLanguage } = useLanguage();
   const [currentPage, setCurrentPage] = useState('dashboard');
+
+  // Show language selection modal if language hasn't been selected
+  if (!hasSelectedLanguage) {
+    return (
+      <LanguageSelectionModal 
+        isOpen={true} 
+      />
+    );
+  }
 
   if (!user) {
     return <Login />;

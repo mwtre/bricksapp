@@ -10,6 +10,8 @@ interface LanguageContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  hasSelectedLanguage: boolean;
+  setHasSelectedLanguage: (selected: boolean) => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -26,10 +28,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguage] = useState<Language>('da');
   const [theme, setTheme] = useState<Theme>('dark');
   const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
 
   useEffect(() => {
+    // Check if user has already selected a language
+    const languageSelected = localStorage.getItem('bricksapp-language-selected');
+    if (languageSelected === 'true') {
+      setHasSelectedLanguage(true);
+    }
+
     // Check for stored language preference
-    const storedLanguage = localStorage.getItem('bricksapp_language') as Language;
+    const storedLanguage = localStorage.getItem('bricksapp-language') as Language;
     if (storedLanguage && ['da', 'en', 'it', 'es', 'lt'].includes(storedLanguage)) {
       setLanguage(storedLanguage);
     }
@@ -52,7 +61,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
     
     // Store language preference
-    localStorage.setItem('bricksapp_language', language);
+    localStorage.setItem('bricksapp-language', language);
   }, [language]);
 
   useEffect(() => {
@@ -78,7 +87,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, theme, setTheme, toggleTheme }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      t, 
+      theme, 
+      setTheme, 
+      toggleTheme, 
+      hasSelectedLanguage, 
+      setHasSelectedLanguage 
+    }}>
       {children}
     </LanguageContext.Provider>
   );

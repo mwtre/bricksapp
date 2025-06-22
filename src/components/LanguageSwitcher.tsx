@@ -22,7 +22,7 @@ export const LanguageSwitcher: React.FC = () => {
 
   return (
     <div className="relative group">
-      <button className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+      <button className="language-switcher flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
         <Globe className="h-4 w-4" />
         <span className="hidden sm:inline">{currentLanguage?.flag} {currentLanguage?.name}</span>
         <span className="sm:hidden">{currentLanguage?.flag}</span>

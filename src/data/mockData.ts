@@ -108,27 +108,128 @@ export const mockMaterials: Material[] = [
   }
 ];
 
-export const mockApplications: Application[] = [
-  {
-    id: '1',
-    name: 'Jens Mortensen',
-    email: 'jens@email.dk',
-    phone: '+45 12 34 56 78',
-    experience: 8,
-    certifications: 'Faglig uddannelse som murer, AMU kurser',
-    message: 'Jeg har stor erfaring med forskellige murprojekter og er interesseret i at blive en del af jeres team.',
-    status: 'pending',
-    submittedDate: '2024-01-18'
-  },
-  {
-    id: '2',
-    name: 'Sofie Larsen',
-    email: 'sofie@email.dk',
-    phone: '+45 87 65 43 21',
-    experience: 3,
-    certifications: 'Grundforløb bygge og anlæg, Hovedforløb murer',
-    message: 'Nyuddannet murer søger spændende projekter i København området.',
-    status: 'reviewed',
-    submittedDate: '2024-01-15'
+// Initialize applications from localStorage or use default mock data
+const getStoredApplications = (): Application[] => {
+  try {
+    const stored = localStorage.getItem('bricksapp-applications');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Error loading applications from localStorage:', error);
   }
-];
+  return [
+    {
+      id: '1',
+      name: 'Jens Mortensen',
+      email: 'jens@email.dk',
+      phone: '+45 12 34 56 78',
+      experience: 8,
+      certifications: 'Faglig uddannelse som murer, AMU kurser',
+      message: 'Jeg har stor erfaring med forskellige murprojekter og er interesseret i at blive en del af jeres team.',
+      status: 'pending',
+      submittedDate: '2024-01-18'
+    },
+    {
+      id: '2',
+      name: 'Sofie Larsen',
+      email: 'sofie@email.dk',
+      phone: '+45 87 65 43 21',
+      experience: 3,
+      certifications: 'Grundforløb bygge og anlæg, Hovedforløb murer',
+      message: 'Nyuddannet murer søger spændende projekter i København området.',
+      status: 'reviewed',
+      submittedDate: '2024-01-15'
+    }
+  ];
+};
+
+export const mockApplications: Application[] = getStoredApplications();
+
+// Function to save applications to localStorage
+const saveApplicationsToStorage = (applications: Application[]) => {
+  try {
+    localStorage.setItem('bricksapp-applications', JSON.stringify(applications));
+  } catch (error) {
+    console.error('Error saving applications to localStorage:', error);
+  }
+};
+
+// Function to add new applications
+export const addApplication = (application: Omit<Application, 'id' | 'submittedDate' | 'status'>) => {
+  const newApplication: Application = {
+    ...application,
+    id: (mockApplications.length + 1).toString(),
+    submittedDate: new Date().toISOString().split('T')[0],
+    status: 'pending'
+  };
+  mockApplications.push(newApplication);
+  
+  // Save to localStorage
+  saveApplicationsToStorage(mockApplications);
+  
+  // Dispatch custom event to notify components
+  window.dispatchEvent(new CustomEvent('applications-updated'));
+  
+  return newApplication;
+};
+
+// Function to update application status
+export const updateApplicationStatus = (applicationId: string, newStatus: Application['status']) => {
+  const application = mockApplications.find(app => app.id === applicationId);
+  if (application) {
+    application.status = newStatus;
+    
+    // Save to localStorage
+    saveApplicationsToStorage(mockApplications);
+    
+    // Dispatch custom event to notify components
+    window.dispatchEvent(new CustomEvent('applications-updated'));
+  }
+  return application;
+};
+
+// Function to get fresh applications data
+export const getApplications = (): Application[] => {
+  return [...mockApplications];
+};
+
+// Function to clear all applications (for testing)
+export const clearApplications = () => {
+  mockApplications.length = 0;
+  saveApplicationsToStorage(mockApplications);
+  window.dispatchEvent(new CustomEvent('applications-updated'));
+};
+
+// Function to reset to default applications (for testing)
+export const resetToDefaultApplications = () => {
+  const defaultApps: Application[] = [
+    {
+      id: '1',
+      name: 'Jens Mortensen',
+      email: 'jens@email.dk',
+      phone: '+45 12 34 56 78',
+      experience: 8,
+      certifications: 'Faglig uddannelse som murer, AMU kurser',
+      message: 'Jeg har stor erfaring med forskellige murprojekter og er interesseret i at blive en del af jeres team.',
+      status: 'pending',
+      submittedDate: '2024-01-18'
+    },
+    {
+      id: '2',
+      name: 'Sofie Larsen',
+      email: 'sofie@email.dk',
+      phone: '+45 87 65 43 21',
+      experience: 3,
+      certifications: 'Grundforløb bygge og anlæg, Hovedforløb murer',
+      message: 'Nyuddannet murer søger spændende projekter i København området.',
+      status: 'reviewed',
+      submittedDate: '2024-01-15'
+    }
+  ];
+  
+  mockApplications.length = 0;
+  mockApplications.push(...defaultApps);
+  saveApplicationsToStorage(mockApplications);
+  window.dispatchEvent(new CustomEvent('applications-updated'));
+};

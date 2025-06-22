@@ -1,13 +1,17 @@
-import React from 'react';
-import { Calendar, Users, Building, TrendingUp, AlertTriangle, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Users, Building, TrendingUp, AlertTriangle, MapPin, Video, Grid } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockProjects, } from '../../data/mockData';
+import { mockProjects } from '../../data/mockData';
 import { Project } from '../../types';
+import { LiveCamera } from '../LiveCamera';
+import { MultiCameraView } from '../MultiCameraView';
 
 export const ProjectManagerDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [showMultiCamera, setShowMultiCamera] = useState(false);
   
   const managedProjects = mockProjects.filter((p: Project) => p.managerId === user?.id);
   const activeProjects = managedProjects.filter((p: Project) => p.status === 'active').length;
@@ -24,7 +28,7 @@ export const ProjectManagerDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t('role.projectManager')} Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('role.projectManager')} Dashboard</h1>
         <div className="text-sm text-gray-500">
           {new Date().toLocaleDateString('da-DK', { 
             weekday: 'long', 
@@ -42,6 +46,75 @@ export const ProjectManagerDashboard: React.FC = () => {
         </h1>
         <p className="text-gray-600 dark:text-gray-400">{t('dashboard.projectManagerSubtitle')}</p>
       </div>
+
+      {/* Live Camera Controls */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+            <Video className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+            {t('camera.liveMonitoring')}
+          </h2>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowMultiCamera(true)}
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <Grid className="h-4 w-4 mr-2" />
+              {t('camera.viewAllCameras')}
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {managedProjects.filter(p => p.status === 'active').map((project) => (
+            <button
+              key={project.id}
+              onClick={() => setSelectedProject(selectedProject === project.id ? null : project.id)}
+              className={`p-4 border rounded-lg transition-colors ${
+                selectedProject === project.id
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white">{project.name}</h3>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-red-600 dark:text-red-400">LIVE</span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{project.address}</p>
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>{t('camera.clickToView')}</span>
+                <Video className="h-4 w-4" />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Live Camera View */}
+      {selectedProject && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {t('camera.liveFeed')} - {managedProjects.find(p => p.id === selectedProject)?.name}
+            </h2>
+            <button
+              onClick={() => setSelectedProject(null)}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="aspect-video bg-black rounded-lg overflow-hidden">
+            <LiveCamera
+              projectId={selectedProject}
+              projectName={managedProjects.find(p => p.id === selectedProject)?.name || ''}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -147,6 +220,12 @@ export const ProjectManagerDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Multi-Camera View Modal */}
+      <MultiCameraView 
+        isOpen={showMultiCamera} 
+        onClose={() => setShowMultiCamera(false)} 
+      />
     </div>
   );
 };

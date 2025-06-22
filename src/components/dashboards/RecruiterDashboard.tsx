@@ -1,19 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockApplications } from '../../data/mockData';
+import { mockApplications, getApplications } from '../../data/mockData';
 import { Application } from '../../types';
 
 export const RecruiterDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [applications, setApplications] = useState(getApplications());
   
-  const totalApplications = mockApplications.length;
-  const pendingApplications = mockApplications.filter((app: Application) => app.status === 'pending').length;
-  const reviewedApplications = mockApplications.filter((app: Application) => app.status === 'reviewed').length;
-  const approvedApplications = mockApplications.filter((app: Application) => app.status === 'approved').length;
-  const rejectedApplications = mockApplications.filter((app: Application) => app.status === 'rejected').length;
+  // Refresh applications when component mounts or when applications are updated
+  useEffect(() => {
+    const handleApplicationsUpdate = () => {
+      setApplications(getApplications());
+    };
+
+    // Listen for application updates
+    window.addEventListener('applications-updated', handleApplicationsUpdate);
+    
+    // Initial load
+    setApplications(getApplications());
+
+    return () => {
+      window.removeEventListener('applications-updated', handleApplicationsUpdate);
+    };
+  }, []);
+  
+  const totalApplications = applications.length;
+  const pendingApplications = applications.filter((app: Application) => app.status === 'pending').length;
+  const reviewedApplications = applications.filter((app: Application) => app.status === 'reviewed').length;
+  const approvedApplications = applications.filter((app: Application) => app.status === 'approved').length;
+  const rejectedApplications = applications.filter((app: Application) => app.status === 'rejected').length;
 
   const stats = [
     { label: t('dashboard.pendingApplications'), value: pendingApplications, icon: Clock, color: 'text-orange-600 dark:text-orange-400' },
@@ -22,7 +40,7 @@ export const RecruiterDashboard: React.FC = () => {
     { label: t('dashboard.rejectedApplications'), value: rejectedApplications, icon: XCircle, color: 'text-red-600 dark:text-red-400' }
   ];
 
-  const recentApplications = mockApplications.slice(0, 5);
+  const recentApplications = applications.slice(0, 5);
 
   return (
     <div className="space-y-6">

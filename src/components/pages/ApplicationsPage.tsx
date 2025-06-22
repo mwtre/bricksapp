@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Mail, Phone, Calendar, Clock, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockApplications } from '../../data/mockData';
+import { mockApplications, updateApplicationStatus, getApplications } from '../../data/mockData';
 
 export const ApplicationsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [applications, setApplications] = useState(getApplications());
   const { t } = useLanguage();
 
-  const filteredApplications = mockApplications.filter(application => {
+  // Refresh applications when component mounts or when applications are updated
+  useEffect(() => {
+    const handleApplicationsUpdate = () => {
+      setApplications(getApplications());
+    };
+
+    // Listen for application updates
+    window.addEventListener('applications-updated', handleApplicationsUpdate);
+    
+    // Initial load
+    setApplications(getApplications());
+
+    return () => {
+      window.removeEventListener('applications-updated', handleApplicationsUpdate);
+    };
+  }, []);
+
+  const filteredApplications = applications.filter(application => {
     const matchesSearch = application.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          application.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || application.status === statusFilter;
@@ -47,8 +65,12 @@ export const ApplicationsPage: React.FC = () => {
   };
 
   const handleStatusChange = (applicationId: string, newStatus: string) => {
-    // In a real app, this would make an API call
-    console.log(`Changing status of application ${applicationId} to ${newStatus}`);
+    // Update the application status
+    const updatedApplication = updateApplicationStatus(applicationId, newStatus as any);
+    if (updatedApplication) {
+      // The applications will be refreshed automatically via the event listener
+      console.log(`Changed status of application ${applicationId} to ${newStatus}`);
+    }
   };
 
   return (
@@ -99,7 +121,7 @@ export const ApplicationsPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">{t('common.all')}</p>
-              <p className="text-2xl font-bold text-gray-900">{mockApplications.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
             </div>
           </div>
         </div>
@@ -112,7 +134,7 @@ export const ApplicationsPage: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">{t('status.pending')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {mockApplications.filter(a => a.status === 'pending').length}
+                {applications.filter(a => a.status === 'pending').length}
               </p>
             </div>
           </div>
@@ -126,7 +148,7 @@ export const ApplicationsPage: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">{t('dashboard.reviewed')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {mockApplications.filter(a => a.status === 'reviewed').length}
+                {applications.filter(a => a.status === 'reviewed').length}
               </p>
             </div>
           </div>
@@ -140,7 +162,7 @@ export const ApplicationsPage: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">{t('dashboard.approved')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {mockApplications.filter(a => a.status === 'approved').length}
+                {applications.filter(a => a.status === 'approved').length}
               </p>
             </div>
           </div>

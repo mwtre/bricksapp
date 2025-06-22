@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, FileText, Upload, Send, Hammer } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { addApplication } from '../data/mockData';
 
-export const RecruitmentForm: React.FC = () => {
+interface RecruitmentFormProps {
+  onApplicationSubmitted?: () => void;
+}
+
+export const RecruitmentForm: React.FC<RecruitmentFormProps> = ({ onApplicationSubmitted }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,31 +41,52 @@ export const RecruitmentForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Convert experience string to number
+      const experienceYears = parseInt(formData.experience) || 0;
+      
+      // Save the application
+      const newApplication = addApplication({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        experience: experienceYears,
+        certifications: formData.certifications,
+        message: formData.message
+      });
 
-    console.log('Form submitted:', formData);
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      experience: '',
-      certifications: '',
-      message: '',
-      cvFile: null
-    });
+      console.log('Application saved:', newApplication);
+      
+      // Notify parent component that a new application was submitted
+      if (onApplicationSubmitted) {
+        onApplicationSubmitted();
+      }
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        experience: '',
+        certifications: '',
+        message: '',
+        cvFile: null
+      });
 
-    setIsSubmitting(false);
-    alert(t('recruitment.success'));
+      alert(`${t('recruitment.success')}\n\nApplication ID: ${newApplication.id}\nName: ${newApplication.name}\n\nTo view this application:\n1. Login as recruiter (anne@bricksapp.dk)\n2. Check the recruiter dashboard\n3. Or go to Applications page`);
+    } catch (error) {
+      console.error('Error saving application:', error);
+      alert(t('recruitment.error'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center mb-6">
-        <img src="https://ibb.co/sd65WVCD" alt="BricksApp Logo" className="h-16 w-auto mx-auto mb-4 filter brightness-0 invert" />
+        <img src="https://i.ibb.co/S4dQf3c1/brickwall.png" alt="BricksApp Logo" className="h-16 w-auto mx-auto mb-4 filter brightness-0 invert" />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('recruitment.title')}</h2>
         <p className="text-gray-600 dark:text-gray-400">{t('recruitment.subtitle')}</p>
       </div>
