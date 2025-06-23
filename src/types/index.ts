@@ -20,6 +20,17 @@ export interface Project {
   assignedBricklayers: string[];
   managerId: string;
   materials: Material[];
+  roadmap: RoadmapStep[];
+  brickType: string;
+  bricksPerSqm: number;
+  costPerBrick: number;
+  expectedCost: number;
+  expectedRevenue: number;
+}
+
+export interface RoadmapStep {
+  phase: string;
+  status: 'completed' | 'active' | 'pending' | 'in_review' | 'delayed';
 }
 
 export interface Material {

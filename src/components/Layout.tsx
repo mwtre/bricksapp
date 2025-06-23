@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Building, Users, FileText, Home, HelpCircle, RotateCcw } from 'lucide-react';
+import { LogOut, Building, Users, FileText, Home, HelpCircle, RotateCcw, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -16,6 +16,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
   const { user, logout } = useAuth();
   const { t, setHasSelectedLanguage } = useLanguage();
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const resetLanguageSelection = () => {
     localStorage.removeItem('bricksapp-language-selected');
@@ -49,10 +50,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src="https://i.ibb.co/S4dQf3c1/brickwall.png" alt="BricksApp Logo" className="h-8 w-auto mr-3 filter brightness-0 invert" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">{t('app.title')}</h1>
+            </div>
+
+            <div className="flex items-center md:hidden">
+              <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                <Menu className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </button>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4">
               <button
                 onClick={() => setShowTutorial(true)}
                 className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -91,30 +98,49 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageCha
       <div className="flex flex-1">
         {/* Sidebar */}
         {user && (
-          <nav className="w-64 bg-white dark:bg-gray-800 shadow-sm min-h-screen border-r border-gray-200 dark:border-gray-700">
-            <div className="p-4">
-              <ul className="space-y-2">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <li key={item.id}>
-                      <button
-                        onClick={() => onPageChange(item.id)}
-                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          currentPage === item.id
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-r-2 border-blue-700 dark:border-blue-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5 mr-3" />
-                        {item.label}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </nav>
+          <>
+            {/* Mobile Sidebar */}
+            <div
+              className={`fixed inset-0 bg-gray-600 bg-opacity-75 z-30 md:hidden transition-opacity ${
+                isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+              onClick={() => setIsSidebarOpen(false)}
+            ></div>
+            <nav
+              className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-xl z-40 transform transition-transform md:relative md:transform-none md:shadow-sm md:w-64 md:z-auto ${
+                isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              }`}
+            >
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4 md:hidden">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Menu</h2>
+                  <button onClick={() => setIsSidebarOpen(false)}>
+                    <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
+                <ul className="space-y-2">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.id}>
+                        <button
+                          onClick={() => onPageChange(item.id)}
+                          className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                            currentPage === item.id
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-r-2 border-blue-700 dark:border-blue-400'
+                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <Icon className="h-5 w-5 mr-3" />
+                          {item.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </nav>
+          </>
         )}
 
         {/* Main Content */}

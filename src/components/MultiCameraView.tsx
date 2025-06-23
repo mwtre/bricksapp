@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, List, Maximize2, Minimize2, X } from 'lucide-react';
+import { Grid, List, X, Maximize2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { LiveCamera } from './LiveCamera';
 import { mockProjects } from '../data/mockData';
@@ -112,7 +112,8 @@ export const MultiCameraView: React.FC<MultiCameraViewProps> = ({ isOpen, onClos
             {managedProjects.map((project) => (
               <div 
                 key={project.id} 
-                className={`bg-gray-800 rounded-lg overflow-hidden ${
+                onClick={() => handleToggleFullscreen(project.id)}
+                className={`bg-gray-800 rounded-lg overflow-hidden relative group cursor-pointer ${
                   layout === 'list' ? 'h-32' : 'aspect-video'
                 }`}
               >
@@ -120,6 +121,9 @@ export const MultiCameraView: React.FC<MultiCameraViewProps> = ({ isOpen, onClos
                   projectId={project.id}
                   projectName={project.name}
                 />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Maximize2 className="w-8 h-8 text-white" />
+                </div>
               </div>
             ))}
           </div>

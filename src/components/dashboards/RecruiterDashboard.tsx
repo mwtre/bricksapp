@@ -44,9 +44,9 @@ export const RecruiterDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t('role.recruiter')} Dashboard</h1>
-        <div className="text-sm text-gray-500">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('role.recruiter')} Dashboard</h1>
+        <div className="text-sm text-gray-500 dark:text-gray-300">
           {new Date().toLocaleDateString('da-DK', { 
             weekday: 'long', 
             year: 'numeric', 
@@ -65,7 +65,7 @@ export const RecruiterDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -99,7 +99,7 @@ export const RecruiterDashboard: React.FC = () => {
             <div className="space-y-4">
               {recentApplications.map((application: Application) => (
                 <div key={application.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row justify-between items-start">
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 dark:text-white">{application.name}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{application.email}</p>
@@ -108,7 +108,7 @@ export const RecruiterDashboard: React.FC = () => {
                         <span className="font-medium">{t('common.experience')}:</span> {application.experience} {t('common.years')}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center space-x-2 ml-0 sm:ml-4 mt-2 sm:mt-0">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         application.status === 'approved' 
                           ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
@@ -139,7 +139,7 @@ export const RecruiterDashboard: React.FC = () => {
       {/* Quick Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('dashboard.quickActions')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
             <span className="text-gray-700 dark:text-gray-300">{t('dashboard.reviewApplications')}</span>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Mail, Phone, Calendar, Clock, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockApplications, updateApplicationStatus, getApplications } from '../../data/mockData';
+import { mockApplications, updateApplicationStatus, getApplications, addUser } from '../../data/mockData';
 
 export const ApplicationsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,25 +65,36 @@ export const ApplicationsPage: React.FC = () => {
   };
 
   const handleStatusChange = (applicationId: string, newStatus: string) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (!application) return;
+
     // Update the application status
-    const updatedApplication = updateApplicationStatus(applicationId, newStatus as any);
-    if (updatedApplication) {
-      // The applications will be refreshed automatically via the event listener
-      console.log(`Changed status of application ${applicationId} to ${newStatus}`);
+    updateApplicationStatus(applicationId, newStatus as any);
+    
+    // If approved, create a new user
+    if (newStatus === 'approved') {
+      addUser({
+        name: application.name,
+        email: application.email,
+        phone: application.phone,
+        role: 'bricklayer',
+        assignedProjects: []
+      });
+      console.log(`Created new bricklayer user for ${application.name}`);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t('applications.title')}</h1>
-        <div className="text-sm text-gray-500">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('applications.title')}</h1>
+        <div className="text-sm text-gray-500 dark:text-gray-300">
           {filteredApplications.length} {t('applications.title').toLowerCase()}
         </div>
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="h-5 w-5 text-gray-400 absolute left-3 top-3" />
@@ -92,7 +103,7 @@ export const ApplicationsPage: React.FC = () => {
               placeholder={t('applications.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="relative">
@@ -100,7 +111,7 @@ export const ApplicationsPage: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
               <option value="all">{t('status.allStatus')}</option>
               <option value="pending">{t('status.pending')}</option>
@@ -113,55 +124,55 @@ export const ApplicationsPage: React.FC = () => {
       </div>
 
       {/* Applications Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-gray-100">
-              <FileText className="h-6 w-6 text-gray-600" />
+            <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
+              <FileText className="h-6 w-6 text-gray-600 dark:text-gray-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{t('common.all')}</p>
-              <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('common.all')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{applications.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-yellow-100">
-              <Clock className="h-6 w-6 text-yellow-600" />
+            <div className="p-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
+              <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{t('status.pending')}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('status.pending')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {applications.filter(a => a.status === 'pending').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-blue-100">
-              <FileText className="h-6 w-6 text-blue-600" />
+            <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+              <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{t('dashboard.reviewed')}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.reviewed')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {applications.filter(a => a.status === 'reviewed').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-green-100">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{t('dashboard.approved')}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.approved')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {applications.filter(a => a.status === 'approved').length}
               </p>
             </div>
@@ -172,12 +183,12 @@ export const ApplicationsPage: React.FC = () => {
       {/* Applications List */}
       <div className="space-y-4">
         {filteredApplications.map((application) => (
-          <div key={application.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div key={application.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200">
             <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 text-lg">{application.name}</h3>
-                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-lg">{application.name}</h3>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center">
                       <Mail className="h-4 w-4 mr-1" />
                       {application.email}
@@ -192,7 +203,7 @@ export const ApplicationsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="ml-4 flex items-center space-x-2">
+                <div className="mt-2 sm:mt-0 ml-0 sm:ml-4 flex items-center space-x-2">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(application.status)}`}>
                     {getStatusIcon(application.status)}
                     <span className="ml-1">{getStatusText(application.status)}</span>
@@ -214,13 +225,13 @@ export const ApplicationsPage: React.FC = () => {
 
               <div className="mb-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">{t('applications.applicationLetter')}</p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700">{application.message}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{application.message}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex flex-wrap gap-2">
                   {application.status === 'pending' && (
                     <>
                       <button 

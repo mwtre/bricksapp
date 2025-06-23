@@ -1,4 +1,4 @@
-import { User, Project, Material, Application } from '../types';
+import { User, Project, Material, Application, RoadmapStep } from '../types';
 
 export const mockUsers: User[] = [
   {
@@ -33,12 +33,50 @@ export const mockUsers: User[] = [
   }
 ];
 
+// User Management
+const getStoredUsers = (): User[] => {
+  try {
+    const stored = localStorage.getItem('bricksapp-users');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Error loading users from localStorage:', error);
+  }
+  return mockUsers;
+};
+
+const liveUsers: User[] = getStoredUsers();
+
+const saveUsersToStorage = (users: User[]) => {
+  try {
+    localStorage.setItem('bricksapp-users', JSON.stringify(users));
+  } catch (error) {
+    console.error('Error saving users to localStorage:', error);
+  }
+};
+
+export const getUsers = (): User[] => {
+  return [...liveUsers];
+};
+
+export const addUser = (user: Omit<User, 'id'>) => {
+  const newUser: User = {
+    ...user,
+    id: (liveUsers.length + 1).toString(),
+  };
+  liveUsers.push(newUser);
+  saveUsersToStorage(liveUsers);
+  window.dispatchEvent(new CustomEvent('users-updated'));
+  return newUser;
+};
+
 export const mockProjects: Project[] = [
   {
     id: '1',
     name: 'Københavns Nye Boligkompleks',
     address: 'Vesterbrogade 123, 1620 København V',
-    description: 'Moderne boligkompleks med 120 lejligheder',
+    description: 'Moderne boligkompleks med 120 lejligheder, med fokus på bæredygtige materialer og grønne områder.',
     brickCountRequired: 50000,
     brickCountUsed: 32000,
     startDate: '2024-01-15',
@@ -46,13 +84,25 @@ export const mockProjects: Project[] = [
     status: 'active',
     assignedBricklayers: ['1', '3'],
     managerId: '2',
-    materials: []
+    materials: [],
+    roadmap: [
+      { phase: 'Planlægning', status: 'completed' },
+      { phase: 'Fundament', status: 'completed' },
+      { phase: 'Murværk', status: 'active' },
+      { phase: 'Taglægning', status: 'pending' },
+      { phase: 'Færdiggørelse', status: 'pending' },
+    ],
+    brickType: 'Rød Blødstrøgen RT 215',
+    bricksPerSqm: 64,
+    costPerBrick: 4.5,
+    expectedCost: 225000,
+    expectedRevenue: 310000,
   },
   {
     id: '2',
     name: 'Aarhus Kontorhus',
     address: 'Åboulevarden 45, 8000 Aarhus C',
-    description: 'Moderne kontorhus med 8 etager',
+    description: 'Moderne kontorhus med 8 etager og fokus på åbne kontorlandskaber og innovative løsninger.',
     brickCountRequired: 35000,
     brickCountUsed: 8000,
     startDate: '2024-02-01',
@@ -60,13 +110,25 @@ export const mockProjects: Project[] = [
     status: 'active',
     assignedBricklayers: ['1'],
     managerId: '2',
-    materials: []
+    materials: [],
+    roadmap: [
+      { phase: 'Planlægning', status: 'completed' },
+      { phase: 'Fundament', status: 'active' },
+      { phase: 'Murværk', status: 'pending' },
+      { phase: 'Vinduer & Facade', status: 'pending' },
+      { phase: 'Indvendig', status: 'pending' },
+    ],
+    brickType: 'Gul Håndstrøgen B542',
+    bricksPerSqm: 58,
+    costPerBrick: 5.2,
+    expectedCost: 182000,
+    expectedRevenue: 250000,
   },
   {
     id: '3',
     name: 'Odense Skole Renovering',
     address: 'Skolegade 12, 5000 Odense C',
-    description: 'Renovering af historisk skolebygning',
+    description: 'Omfattende renovering af en historisk skolebygning for at bevare arkitekturen og modernisere faciliteterne.',
     brickCountRequired: 15000,
     brickCountUsed: 12000,
     startDate: '2024-01-01',
@@ -74,9 +136,74 @@ export const mockProjects: Project[] = [
     status: 'delayed',
     assignedBricklayers: ['3'],
     managerId: '2',
-    materials: []
+    materials: [],
+    roadmap: [
+      { phase: 'Planlægning', status: 'completed' },
+      { phase: 'Nedrivning', status: 'completed' },
+      { phase: 'Genopbygning', status: 'active' },
+      { phase: 'Restaurering', status: 'delayed' },
+      { phase: 'Aflevering', status: 'pending' },
+    ],
+    brickType: 'Gammel Dansk Mursten',
+    bricksPerSqm: 71,
+    costPerBrick: 8.0,
+    expectedCost: 120000,
+    expectedRevenue: 165000,
   }
 ];
+
+// Initialize projects from localStorage or use default mock data
+const getStoredProjects = (): Project[] => {
+  try {
+    const stored = localStorage.getItem('bricksapp-projects');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Error loading projects from localStorage:', error);
+  }
+  return mockProjects; // Return the hardcoded projects if nothing is stored
+};
+
+// A mutable copy of projects that the app will use
+const liveProjects: Project[] = getStoredProjects();
+
+// Function to save projects to localStorage
+const saveProjectsToStorage = (projects: Project[]) => {
+  try {
+    localStorage.setItem('bricksapp-projects', JSON.stringify(projects));
+  } catch (error) {
+    console.error('Error saving projects to localStorage:', error);
+  }
+};
+
+// Function to get fresh projects data
+export const getProjects = (): Project[] => {
+  return [...liveProjects];
+};
+
+// Function to add a new project
+export const addProject = (project: Omit<Project, 'id'>) => {
+  const newProject: Project = {
+    ...project,
+    id: (liveProjects.length + 1).toString(),
+  };
+  liveProjects.push(newProject);
+  saveProjectsToStorage(liveProjects);
+  window.dispatchEvent(new CustomEvent('projects-updated'));
+  return newProject;
+};
+
+// Function to update assigned bricklayers for a project
+export const assignBricklayersToProject = (projectId: string, assignedBricklayers: string[]) => {
+  const project = liveProjects.find(p => p.id === projectId);
+  if (project) {
+    project.assignedBricklayers = assignedBricklayers;
+    saveProjectsToStorage(liveProjects);
+    window.dispatchEvent(new CustomEvent('projects-updated'));
+  }
+  return project;
+};
 
 export const mockMaterials: Material[] = [
   {
@@ -232,4 +359,29 @@ export const resetToDefaultApplications = () => {
   mockApplications.push(...defaultApps);
   saveApplicationsToStorage(mockApplications);
   window.dispatchEvent(new CustomEvent('applications-updated'));
+};
+
+export const deleteProject = (projectId: string) => {
+  const index = liveProjects.findIndex(p => p.id === projectId);
+  if (index !== -1) {
+    liveProjects.splice(index, 1);
+    saveProjectsToStorage(liveProjects);
+    window.dispatchEvent(new CustomEvent('projects-updated'));
+    return true;
+  }
+  return false;
+};
+
+export const updateRoadmapStepStatus = (projectId: string, phase: string, newStatus: RoadmapStep['status']) => {
+  const project = liveProjects.find(p => p.id === projectId);
+  if (project) {
+    const step = project.roadmap.find(s => s.phase === phase);
+    if (step) {
+      step.status = newStatus;
+      saveProjectsToStorage(liveProjects);
+      window.dispatchEvent(new CustomEvent('projects-updated'));
+      return true;
+    }
+  }
+  return false;
 };

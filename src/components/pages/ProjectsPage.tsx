@@ -45,8 +45,8 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {userRole === 'project_manager' ? t('projects.allProjects') : t('projects.myProjects')}
         </h1>
         {userRole === 'project_manager' && (
@@ -58,7 +58,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="h-5 w-5 text-gray-400 absolute left-3 top-3" />
@@ -67,7 +67,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
               placeholder={t('projects.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="relative">
@@ -75,7 +75,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
               <option value="all">{t('status.allStatus')}</option>
               <option value="active">{t('status.active')}</option>
@@ -97,17 +97,17 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
           );
           
           return (
-            <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+            <div key={project.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200">
               <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col sm:flex-row items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 text-lg">{project.name}</h3>
-                    <div className="flex items-center text-gray-600 mt-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-lg">{project.name}</h3>
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 mt-1">
                       <MapPin className="h-4 w-4 mr-1" />
                       <span className="text-sm">{project.address}</span>
                     </div>
                   </div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
+                  <span className={`mt-2 sm:mt-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
                     {getStatusText(project.status)}
                   </span>
                 </div>
@@ -135,23 +135,23 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
                 </div>
 
                 {/* Project Details */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <div className="flex items-center text-gray-600 text-sm">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
                       <Calendar className="h-4 w-4 mr-1" />
                       <span>{t('projects.startDate', { date: new Date(project.startDate).toLocaleDateString('da-DK') })}</span>
                     </div>
-                    <div className="flex items-center text-gray-600 text-sm mt-1">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
                       <Calendar className="h-4 w-4 mr-1" />
                       <span>{t('projects.endDate', { date: new Date(project.endDate).toLocaleDateString('da-DK') })}</span>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center text-gray-600 text-sm">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
                       <Users className="h-4 w-4 mr-1" />
                       <span>{assignedBricklayers.length} {t('projects.bricklayers')}</span>
                     </div>
-                    <div className="flex items-center text-gray-600 text-sm mt-1">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
                       <Building className="h-4 w-4 mr-1" />
                       <span>{t('projects.materialsCount', { count: materials.length })}</span>
                     </div>
@@ -210,8 +210,8 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
 
       {filteredProjects.length === 0 && (
         <div className="text-center py-12">
-          <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">{t('projects.noActiveProjects')}</p>
+          <Building className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">{t('projects.noActiveProjects')}</p>
         </div>
       )}
     </div>
