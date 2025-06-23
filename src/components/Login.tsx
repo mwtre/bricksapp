@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock, HelpCircle, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -8,6 +8,8 @@ import { RecruitmentForm } from './RecruitmentForm';
 import { ConstructionTutorials } from './ConstructionTutorials';
 import { VideoBackground } from './VideoBackground';
 import { AppTutorial } from './AppTutorial';
+import AnimatedLogo from './AnimatedLogo';
+import AnimatedTrowel from './AnimatedTrowel';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +20,40 @@ export const Login: React.FC = () => {
   const [loginType, setLoginType] = useState<'management' | 'bricklayer'>('management');
   const { login, isLoading } = useAuth();
   const { t, setHasSelectedLanguage } = useLanguage();
+  const hasPlayedSound = useRef(false);
+
+  // Play sound when component mounts
+  useEffect(() => {
+    if (!hasPlayedSound.current) {
+      const playSound = async () => {
+        try {
+          const audio = new Audio('./bricksund.mp3');
+          audio.volume = 0.5;
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            await playPromise;
+            console.log('Login sound played successfully');
+          }
+        } catch (error) {
+          console.log('Could not play login sound automatically:', error);
+          // If autoplay fails, try on first user interaction
+          const handleUserInteraction = () => {
+            const audio = new Audio('./bricksund.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(err => console.log('Still cannot play login sound:', err));
+            document.removeEventListener('click', handleUserInteraction);
+            document.removeEventListener('keydown', handleUserInteraction);
+          };
+          
+          document.addEventListener('click', handleUserInteraction);
+          document.addEventListener('keydown', handleUserInteraction);
+        }
+      };
+      
+      playSound();
+      hasPlayedSound.current = true;
+    }
+  }, []);
 
   const resetLanguageSelection = () => {
     localStorage.removeItem('bricksapp-language-selected');
@@ -76,7 +112,9 @@ export const Login: React.FC = () => {
         
         <div className="max-w-7xl mx-auto p-4 relative z-10">
           <div className="text-center mb-8">
-            <img src="https://i.ibb.co/S4dQf3c1/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
+            <div className="flex justify-center mb-4">
+              <AnimatedLogo />
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">{t('login.welcomeNewBricklayer')}</p>
           </div>
@@ -245,7 +283,9 @@ export const Login: React.FC = () => {
       <div className="max-w-md w-full relative z-10">
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-xl p-8 border border-white/30 dark:border-gray-700/30">
           <div className="text-center mb-8">
-            <img src="https://i.ibb.co/S4dQf3c1/brickwall.png" alt="BricksApp Logo" className="h-12 w-auto mx-auto mb-4 filter brightness-0 invert" />
+            <div className="flex justify-center items-center mb-4">
+              <AnimatedLogo size={120} />
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">{t('app.subtitle')}</p>
           </div>

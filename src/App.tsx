@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Login } from './components/Login';
@@ -14,15 +14,80 @@ import { LanguageSelectionModal } from './components/LanguageSelectionModal';
 
 function AppContent() {
   const { user } = useAuth();
-  const { hasSelectedLanguage, setHasSelectedLanguage } = useLanguage();
+  const { hasSelectedLanguage } = useLanguage();
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const hasPlayedSound = useRef(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const testSound = () => {
+    const audio = new Audio('./bricksund.mp3');
+    audio.volume = 0.5;
+    audio.play().then(() => {
+      console.log('Test sound played successfully');
+    }).catch(err => {
+      console.log('Test sound failed:', err);
+    });
+  };
+
+  useEffect(() => {
+    // Mark as initialized after a short delay to ensure context is ready
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized && hasSelectedLanguage && !hasPlayedSound.current) {
+      const playSound = async () => {
+        try {
+          const audio = new Audio('./bricksund.mp3');
+          audio.volume = 0.5; // Set volume to 50%
+          
+          // Try to play the audio
+          const playPromise = audio.play();
+          
+          if (playPromise !== undefined) {
+            await playPromise;
+            console.log('Sound played successfully');
+          }
+        } catch (error) {
+          console.log('Could not play sound automatically:', error);
+          // If autoplay fails, we'll try again on the next user interaction
+          const handleUserInteraction = () => {
+            const audio = new Audio('./bricksund.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(err => console.log('Still cannot play sound:', err));
+            document.removeEventListener('click', handleUserInteraction);
+            document.removeEventListener('keydown', handleUserInteraction);
+          };
+          
+          document.addEventListener('click', handleUserInteraction);
+          document.addEventListener('keydown', handleUserInteraction);
+        }
+      };
+      
+      playSound();
+      hasPlayedSound.current = true;
+    }
+  }, [hasSelectedLanguage, isInitialized]);
 
   // Show language selection modal if language hasn't been selected
   if (!hasSelectedLanguage) {
     return (
-      <LanguageSelectionModal 
-        isOpen={true} 
-      />
+      <div>
+        <LanguageSelectionModal 
+          isOpen={true} 
+        />
+        {/* Debug button */}
+        <button 
+          onClick={testSound}
+          className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-[10000]"
+        >
+          Test Sound
+        </button>
+      </div>
     );
   }
 
