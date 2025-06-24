@@ -135,13 +135,47 @@ export const projectService = {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from(TABLES.PROJECTS)
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Supabase error getting projects:', error);
+        throw error;
+      }
+
+      console.log('Raw projects data from Supabase:', data);
+
+      // Transform snake_case to camelCase
+      const transformedProjects: Project[] = (data || []).map((project: any) => ({
+        id: project.id,
+        name: project.name,
+        address: project.address,
+        description: project.description,
+        brickCountRequired: project.brick_count_required,
+        brickCountUsed: project.brick_count_used,
+        startDate: project.start_date,
+        endDate: project.end_date,
+        status: project.status,
+        managerId: project.manager_id,
+        brickType: project.brick_type,
+        bricksPerSqm: project.bricks_per_sqm,
+        costPerBrick: project.cost_per_brick,
+        expectedCost: project.expected_cost,
+        expectedRevenue: project.expected_revenue,
+        assignedBricklayers: [], // Will be populated separately
+        roadmap: project.roadmap || [],
+        materials: project.materials || []
+      }));
+
+      console.log('Transformed projects:', transformedProjects);
+      return transformedProjects;
+    } catch (error) {
+      console.error('Error in getProjects:', error);
+      throw error;
+    }
   },
 
   // Get project by ID
@@ -184,14 +218,69 @@ export const projectService = {
       return mockProject;
     }
 
-    const { data, error } = await supabase
-      .from(TABLES.PROJECTS)
-      .insert([project])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+    try {
+      // Transform camelCase to snake_case for database
+      const projectData = {
+        name: project.name,
+        address: project.address,
+        description: project.description,
+        brick_count_required: project.brickCountRequired,
+        brick_count_used: project.brickCountUsed,
+        start_date: project.startDate,
+        end_date: project.endDate,
+        status: project.status,
+        manager_id: project.managerId,
+        brick_type: project.brickType,
+        bricks_per_sqm: project.bricksPerSqm,
+        cost_per_brick: project.costPerBrick,
+        expected_cost: project.expectedCost,
+        expected_revenue: project.expectedRevenue,
+        roadmap: project.roadmap,
+        materials: project.materials
+      };
+
+      console.log('Inserting project data:', projectData);
+
+      const { data, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .insert([projectData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Supabase error creating project:', error);
+        throw error;
+      }
+
+      console.log('Project created successfully:', data);
+      
+      // Transform back to camelCase for the frontend
+      const transformedProject: Project = {
+        id: data.id,
+        name: data.name,
+        address: data.address,
+        description: data.description,
+        brickCountRequired: data.brick_count_required,
+        brickCountUsed: data.brick_count_used,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        status: data.status,
+        managerId: data.manager_id,
+        brickType: data.brick_type,
+        bricksPerSqm: data.bricks_per_sqm,
+        costPerBrick: data.cost_per_brick,
+        expectedCost: data.expected_cost,
+        expectedRevenue: data.expected_revenue,
+        assignedBricklayers: [], // Will be populated separately
+        roadmap: data.roadmap || [],
+        materials: data.materials || []
+      };
+
+      return transformedProject;
+    } catch (error) {
+      console.error('Error in createProject:', error);
+      throw error;
+    }
   },
 
   // Update project
