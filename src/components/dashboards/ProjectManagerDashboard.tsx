@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Building, TrendingUp, AlertTriangle, MapPin, Video, Grid, CheckCircle, Construction, CircleDot, Hourglass, Edit } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { getProjects, assignBricklayersToProject, deleteProject } from '../../data/mockData';
+import { projectService } from '../../services/database';
 import { Project } from '../../types';
 import { LiveCamera } from '../LiveCamera';
 import { MultiCameraView } from '../MultiCameraView';
@@ -12,30 +12,63 @@ import { AssignTeamModal } from '../AssignTeamModal';
 export const ProjectManagerDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [projects, setProjects] = useState(getProjects());
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [showMultiCamera, setShowMultiCamera] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [projectToAssign, setProjectToAssign] = useState<Project | null>(null);
   
+  // Load projects from Supabase
+  const loadProjects = async () => {
+    try {
+      setIsLoading(true);
+      const projectsData = await projectService.getProjects();
+      console.log('Loaded projects from Supabase:', projectsData);
+      setProjects(projectsData);
+    } catch (error) {
+      console.error('Error loading projects:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const handleProjectsUpdate = () => {
-      setProjects(getProjects());
-    };
-
-    window.addEventListener('projects-updated', handleProjectsUpdate);
+    loadProjects();
+    
+    // Subscribe to real-time project updates
+    const subscription = projectService.subscribeToProjects((updatedProjects) => {
+      console.log('Real-time project update received:', updatedProjects);
+      setProjects(updatedProjects);
+    });
+    
     return () => {
-      window.removeEventListener('projects-updated', handleProjectsUpdate);
+      subscription.unsubscribe();
     };
   }, []);
   
-  const handleSaveAssignments = (projectId: string, assignedBricklayers: string[]) => {
-    assignBricklayersToProject(projectId, assignedBricklayers);
+  const handleProjectCreated = (newProject: Project) => {
+    console.log('New project created:', newProject);
+    // The subscription will automatically update the projects list
   };
   
-  const handleDeleteProject = (projectId: string) => {
+  const handleSaveAssignments = async (projectId: string, assignedBricklayers: string[]) => {
+    try {
+      await projectService.updateProject(projectId, { assignedBricklayers });
+      console.log('Project assignments updated successfully');
+    } catch (error) {
+      console.error('Error updating project assignments:', error);
+    }
+  };
+  
+  const handleDeleteProject = async (projectId: string) => {
     if (window.confirm('Er du sikker på, at du vil slette dette projekt?')) {
-      deleteProject(projectId);
+      try {
+        await projectService.deleteProject(projectId);
+        console.log('Project deleted successfully');
+      } catch (error) {
+        console.error('Error deleting project:', error);
+      }
     }
   };
   
@@ -50,6 +83,17 @@ export const ProjectManagerDashboard: React.FC = () => {
     { label: t('dashboard.completedProjects'), value: completedProjects, icon: Calendar, color: 'text-purple-600 dark:text-purple-400' },
     { label: t('dashboard.delayedProjects'), value: delayedProjects, icon: AlertTriangle, color: 'text-red-600 dark:text-red-400' }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading projects...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -198,95 +242,36 @@ export const ProjectManagerDashboard: React.FC = () => {
                           ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
                           : project.status === 'delayed'
                           ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                          : 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400'
+                          : 'bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-400'
                       }`}>
+                        {project.status === 'completed' && <CheckCircle className="h-3 w-3 inline mr-1" />}
+                        {project.status === 'active' && <Construction className="h-3 w-3 inline mr-1" />}
+                        {project.status === 'delayed' && <AlertTriangle className="h-3 w-3 inline mr-1" />}
+                        {project.status === 'planning' && <CircleDot className="h-3 w-3 inline mr-1" />}
                         {t(`status.${project.status}`)}
                       </span>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center">
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                          <Users className="h-4 w-4 mr-1" />
-                          {project.assignedBricklayers?.length || 0} {t('common.bricklayers')}
-                        </div>
-                        <button 
-                          onClick={() => setProjectToAssign(project)}
-                          className="ml-4 flex items-center text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Tildel Team
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProject(project.id)}
-                          className="ml-4 flex items-center text-xs text-red-600 dark:text-red-400 hover:underline"
-                        >
-                          Slet
-                        </button>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {t('common.progress')}: {Math.round((project.brickCountUsed / project.brickCountRequired) * 100)}%
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(Math.round((project.brickCountUsed / project.brickCountRequired) * 100), 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Roadmap */}
-                  <div className="mt-4">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Projekt Roadmap</h4>
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center space-x-2">
-                      {project.roadmap.map((step, index) => {
-                        const isCompleted = step.status === 'completed';
-                        const isActive = step.status === 'active';
-                        return (
-                          <React.Fragment key={step.phase}>
-                            <div className="flex flex-col items-center">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                isCompleted ? 'bg-green-500' : isActive ? 'bg-blue-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'
-                              }`}>
-                                {isCompleted ? <CheckCircle className="w-4 h-4 text-white" /> : isActive ? <Construction className="w-4 h-4 text-white" /> : <Hourglass className="w-4 h-4 text-gray-500" />}
-                              </div>
-                              <p className="text-xs text-center mt-1 text-gray-600 dark:text-gray-400">{step.phase}</p>
-                            </div>
-                            {index < project.roadmap.length - 1 && (
-                              <div className="flex-1 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
+                      <button
+                        onClick={() => setProjectToAssign(project)}
+                        className="flex items-center px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        {t('dashboard.assignTeam')}
+                      </button>
+                      <button className="flex items-center px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        <Edit className="h-4 w-4 mr-1" />
+                        {t('common.edit')}
+                      </button>
                     </div>
-                  </div>
-
-                  {/* Project Details */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">Murstenstype:</p>
-                      <p className="text-gray-600 dark:text-gray-400">{project.brickType}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">Mursten pr. m²:</p>
-                      <p className="text-gray-600 dark:text-gray-400">{project.bricksPerSqm}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">Pris pr. mursten:</p>
-                      <p className="text-gray-600 dark:text-gray-400">{project.costPerBrick.toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">Forventet omkostning:</p>
-                      <p className="text-gray-600 dark:text-gray-400">{project.expectedCost.toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-green-600 dark:text-green-400">Forventet profit:</p>
-                      <p className="font-semibold text-green-700 dark:text-green-300">
-                        {(project.expectedRevenue - project.expectedCost).toLocaleString('da-DK', { style: 'currency', currency: 'DKK' })}
-                      </p>
-                    </div>
+                    <button
+                      onClick={() => handleDeleteProject(project.id)}
+                      className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm"
+                    >
+                      {t('common.delete')}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -327,6 +312,7 @@ export const ProjectManagerDashboard: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         managerId={user?.id || ''}
+        onProjectCreated={handleProjectCreated}
       />
 
       <AssignTeamModal
