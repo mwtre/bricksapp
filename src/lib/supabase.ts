@@ -4,8 +4,16 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
+// Debug logging
+console.log('🔧 Supabase Configuration:');
+console.log('URL:', supabaseUrl);
+console.log('Key available:', supabaseAnonKey ? 'Yes' : 'No');
+console.log('Environment:', import.meta.env.MODE);
+
 // Check if we have real Supabase credentials
 const hasValidCredentials = supabaseUrl !== 'https://placeholder.supabase.co' && supabaseAnonKey !== 'placeholder-key';
+
+console.log('✅ Supabase available:', hasValidCredentials);
 
 export const supabase = hasValidCredentials 
   ? createClient(supabaseUrl, supabaseAnonKey)
