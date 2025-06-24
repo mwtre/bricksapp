@@ -15,7 +15,7 @@ export interface GoogleUser {
 }
 
 class GoogleAuthService {
-  private clientId = 'YOUR_GOOGLE_CLIENT_ID'; // You'll need to replace this with your actual Google Client ID
+  private clientId = '503803880725-eueg5fg19suuvtuufsuprpd7frvm30ml.apps.googleusercontent.com';
   private isInitialized = false;
 
   async initialize(): Promise<void> {
