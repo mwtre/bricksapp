@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle, Check, X, User, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { applicationService } from '../../services/database';
@@ -10,6 +10,7 @@ export const RecruiterDashboard: React.FC = () => {
   const { t } = useLanguage();
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   
   // Load applications from Supabase
   const loadData = async () => {
@@ -38,6 +39,34 @@ export const RecruiterDashboard: React.FC = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const handleStatusUpdate = async (applicationId: string, newStatus: 'pending' | 'reviewed' | 'approved' | 'rejected') => {
+    try {
+      setUpdatingId(applicationId);
+      await applicationService.updateApplicationStatus(applicationId, newStatus);
+      console.log(`Application ${applicationId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      alert('Error updating application status');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteApplication = async (applicationId: string) => {
+    if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+      try {
+        setUpdatingId(applicationId);
+        await applicationService.deleteApplication(applicationId);
+        console.log(`Application ${applicationId} deleted`);
+      } catch (error) {
+        console.error('Error deleting application:', error);
+        alert('Error deleting application');
+      } finally {
+        setUpdatingId(null);
+      }
+    }
+  };
   
   const totalApplications = applications.length;
   const pendingApplications = applications.filter((app: Application) => app.status === 'pending').length;
@@ -162,6 +191,72 @@ export const RecruiterDashboard: React.FC = () => {
                   <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <span>{t('common.submitted')}: {new Date(application.submittedDate).toLocaleDateString()}</span>
                     <span>{t('common.certifications')}: {application.certifications}</span>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="mt-4 flex items-center justify-end space-x-2 pt-3 border-t border-gray-100 dark:border-gray-600">
+                    {application.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleStatusUpdate(application.id, 'approved')}
+                          disabled={updatingId === application.id}
+                          className="flex items-center px-3 py-1 text-xs bg-green-100 hover:bg-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-700 dark:text-green-300 rounded-md transition-colors disabled:opacity-50"
+                          title="Approve Application"
+                        >
+                          <Check className="h-3 w-3 mr-1" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(application.id, 'rejected')}
+                          disabled={updatingId === application.id}
+                          className="flex items-center px-3 py-1 text-xs bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-300 rounded-md transition-colors disabled:opacity-50"
+                          title="Reject Application"
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(application.id, 'reviewed')}
+                          disabled={updatingId === application.id}
+                          className="flex items-center px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-md transition-colors disabled:opacity-50"
+                          title="Mark as Reviewed"
+                        >
+                          <User className="h-3 w-3 mr-1" />
+                          Review
+                        </button>
+                      </>
+                    )}
+                    {application.status === 'reviewed' && (
+                      <>
+                        <button
+                          onClick={() => handleStatusUpdate(application.id, 'approved')}
+                          disabled={updatingId === application.id}
+                          className="flex items-center px-3 py-1 text-xs bg-green-100 hover:bg-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-700 dark:text-green-300 rounded-md transition-colors disabled:opacity-50"
+                          title="Approve Application"
+                        >
+                          <Check className="h-3 w-3 mr-1" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(application.id, 'rejected')}
+                          disabled={updatingId === application.id}
+                          className="flex items-center px-3 py-1 text-xs bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-300 rounded-md transition-colors disabled:opacity-50"
+                          title="Reject Application"
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleDeleteApplication(application.id)}
+                      disabled={updatingId === application.id}
+                      className="flex items-center px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors disabled:opacity-50"
+                      title="Delete Application"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
