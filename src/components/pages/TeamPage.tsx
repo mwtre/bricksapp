@@ -1,14 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Mail, Phone, Building, Plus, Search, UserPlus } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockUsers, mockProjects } from '../../data/mockData';
+import { userService, projectService } from '../../services/database';
+import { User, Project } from '../../types';
 
 export const TeamPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [users, setUsers] = useState<User[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
 
-  const teamMembers = mockUsers.filter(user => {
+  // Load users and projects from Supabase
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [usersData, projectsData] = await Promise.all([
+        userService.getUsers(),
+        projectService.getProjects()
+      ]);
+      console.log('Loaded users from Supabase:', usersData);
+      console.log('Loaded projects from Supabase:', projectsData);
+      setUsers(usersData);
+      setProjects(projectsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    
+    // Subscribe to real-time updates
+    const userSubscription = userService.subscribeToUsers((updatedUsers) => {
+      console.log('Real-time user update received:', updatedUsers);
+      setUsers(updatedUsers);
+    });
+    
+    const projectSubscription = projectService.subscribeToProjects((updatedProjects) => {
+      console.log('Real-time project update received:', updatedProjects);
+      setProjects(updatedProjects);
+    });
+    
+    return () => {
+      userSubscription.unsubscribe();
+      projectSubscription.unsubscribe();
+    };
+  }, []);
+
+  const teamMembers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -34,14 +77,36 @@ export const TeamPage: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading team data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('team.title')}</h1>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
-          <UserPlus className="h-4 w-4 mr-2" />
-          {t('team.addMember')}
-        </button>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('nav.team')}</h1>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={loadData}
+            className="flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
+            <UserPlus className="h-4 w-4 mr-2" />
+            {t('team.addMember')}
+          </button>
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -58,12 +123,13 @@ export const TeamPage: React.FC = () => {
             />
           </div>
           <div className="relative">
+            <Users className="h-5 w-5 text-gray-400 absolute left-3 top-3" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full pl-4 pr-8 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
-              <option value="all">{t('common.all')} {t('common.team')}</option>
+              <option value="all">{t('team.allRoles')}</option>
               <option value="bricklayer">{t('role.bricklayer')}</option>
               <option value="project_manager">{t('role.projectManager')}</option>
               <option value="recruiter">{t('role.recruiter')}</option>
@@ -72,7 +138,7 @@ export const TeamPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Team Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
@@ -80,10 +146,8 @@ export const TeamPage: React.FC = () => {
               <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('team.totalBricklayers')}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {mockUsers.filter(u => u.role === 'bricklayer').length}
-              </p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('team.totalMembers')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{users.length}</p>
             </div>
           </div>
         </div>
@@ -94,9 +158,9 @@ export const TeamPage: React.FC = () => {
               <Building className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('team.projectManagers')}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.activeProjects')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {mockUsers.filter(u => u.role === 'project_manager').length}
+                {projects.filter(p => p.status === 'active').length}
               </p>
             </div>
           </div>
@@ -108,9 +172,9 @@ export const TeamPage: React.FC = () => {
               <UserPlus className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.activeProjects')}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('team.bricklayers')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {mockProjects.filter(p => p.status === 'active').length}
+                {users.filter(u => u.role === 'bricklayer').length}
               </p>
             </div>
           </div>
@@ -120,9 +184,9 @@ export const TeamPage: React.FC = () => {
       {/* Team Members Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {teamMembers.map((member) => {
-          const assignedProjects = member.assignedProjects 
-            ? mockProjects.filter(p => member.assignedProjects!.includes(p.id))
-            : [];
+          const assignedProjects = projects.filter(p => 
+            p.assignedBricklayers.includes(member.id)
+          );
 
           return (
             <div key={member.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200">

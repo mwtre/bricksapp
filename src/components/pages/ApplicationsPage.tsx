@@ -1,34 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Mail, Phone, Calendar, Clock, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
+import { FileText, Mail, Phone, Calendar, User, Check, X, Eye, Search, Filter } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockApplications, updateApplicationStatus, getApplications, addUser } from '../../data/mockData';
+import { applicationService } from '../../services/database';
+import { Application } from '../../types';
 
 export const ApplicationsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [applications, setApplications] = useState(getApplications());
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
 
-  // Refresh applications when component mounts or when applications are updated
+  // Load applications from Supabase
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const applicationsData = await applicationService.getApplications();
+      console.log('Loaded applications from Supabase:', applicationsData);
+      setApplications(applicationsData);
+    } catch (error) {
+      console.error('Error loading applications:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const handleApplicationsUpdate = () => {
-      setApplications(getApplications());
-    };
-
-    // Listen for application updates
-    window.addEventListener('applications-updated', handleApplicationsUpdate);
+    loadData();
     
-    // Initial load
-    setApplications(getApplications());
-
+    // Subscribe to real-time application updates
+    const subscription = applicationService.subscribeToApplications((updatedApplications) => {
+      console.log('Real-time application update received:', updatedApplications);
+      setApplications(updatedApplications);
+    });
+    
     return () => {
-      window.removeEventListener('applications-updated', handleApplicationsUpdate);
+      subscription.unsubscribe();
     };
   }, []);
 
   const filteredApplications = applications.filter(application => {
     const matchesSearch = application.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         application.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         application.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         application.phone.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || application.status === statusFilter;
     
     return matchesSearch && matchesStatus;
@@ -37,59 +51,57 @@ export const ApplicationsPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'reviewed': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'approved': return 'bg-green-100 text-green-800 border-green-200';
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'reviewed': return 'bg-blue-100 text-blue-800 border-blue-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return t('status.pending');
-      case 'reviewed': return t('dashboard.reviewed');
-      case 'approved': return t('dashboard.approved');
-      case 'rejected': return t('applications.reject');
+      case 'pending': return t('applications.status.pending');
+      case 'approved': return t('applications.status.approved');
+      case 'rejected': return t('applications.status.rejected');
+      case 'reviewed': return t('applications.status.reviewed');
       default: return status;
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return <Clock className="h-4 w-4" />;
-      case 'reviewed': return <FileText className="h-4 w-4" />;
-      case 'approved': return <CheckCircle className="h-4 w-4" />;
-      case 'rejected': return <XCircle className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
+  const handleStatusUpdate = async (applicationId: string, newStatus: 'pending' | 'reviewed' | 'approved' | 'rejected') => {
+    try {
+      await applicationService.updateApplicationStatus(applicationId, newStatus);
+      console.log(`Application ${applicationId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating application status:', error);
     }
   };
 
-  const handleStatusChange = (applicationId: string, newStatus: string) => {
-    const application = applications.find(app => app.id === applicationId);
-    if (!application) return;
-
-    // Update the application status
-    updateApplicationStatus(applicationId, newStatus as any);
-    
-    // If approved, create a new user
-    if (newStatus === 'approved') {
-      addUser({
-        name: application.name,
-        email: application.email,
-        phone: application.phone,
-        role: 'bricklayer',
-        assignedProjects: []
-      });
-      console.log(`Created new bricklayer user for ${application.name}`);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('applications.title')}</h1>
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {filteredApplications.length} {t('applications.title').toLowerCase()}
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('nav.applications')}</h1>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={loadData}
+            className="flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
       </div>
 
@@ -113,37 +125,25 @@ export const ApplicationsPage: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
-              <option value="all">{t('status.allStatus')}</option>
-              <option value="pending">{t('status.pending')}</option>
-              <option value="reviewed">{t('dashboard.reviewed')}</option>
-              <option value="approved">{t('dashboard.approved')}</option>
-              <option value="rejected">{t('applications.reject')}</option>
+              <option value="all">{t('applications.allStatus')}</option>
+              <option value="pending">{t('applications.status.pending')}</option>
+              <option value="reviewed">{t('applications.status.reviewed')}</option>
+              <option value="approved">{t('applications.status.approved')}</option>
+              <option value="rejected">{t('applications.status.rejected')}</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Applications Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-          <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
-              <FileText className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('common.all')}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{applications.length}</p>
-            </div>
-          </div>
-        </div>
-
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
-              <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              <FileText className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('status.pending')}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('applications.pending')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {applications.filter(a => a.status === 'pending').length}
               </p>
@@ -154,10 +154,10 @@ export const ApplicationsPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-              <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.reviewed')}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('applications.reviewed')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {applications.filter(a => a.status === 'reviewed').length}
               </p>
@@ -168,12 +168,26 @@ export const ApplicationsPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.approved')}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('applications.approved')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {applications.filter(a => a.status === 'approved').length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20">
+              <X className="h-6 w-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('applications.rejected')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {applications.filter(a => a.status === 'rejected').length}
               </p>
             </div>
           </div>
@@ -181,118 +195,114 @@ export const ApplicationsPage: React.FC = () => {
       </div>
 
       {/* Applications List */}
-      <div className="space-y-4">
-        {filteredApplications.map((application) => (
-          <div key={application.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200">
-            <div className="p-6">
-              <div className="flex flex-col sm:flex-row items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-lg">{application.name}</h3>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('applications.applicant')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('applications.contact')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('applications.experience')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('applications.appliedDate')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('applications.status')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {t('common.actions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredApplications.map((application) => (
+                <tr key={application.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-1" />
-                      {application.email}
+                      <div className="flex-shrink-0 h-10 w-10">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                          <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {application.name}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {application.experience} {t('applications.years')} {t('applications.experience')}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-1" />
-                      {application.phone}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 dark:text-white">{application.email}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{application.phone}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 dark:text-white">
+                      {application.experience} {t('applications.years')}
                     </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(application.submittedDate).toLocaleDateString('da-DK')}
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {application.certifications}
                     </div>
-                  </div>
-                </div>
-                <div className="mt-2 sm:mt-0 ml-0 sm:ml-4 flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(application.status)}`}>
-                    {getStatusIcon(application.status)}
-                    <span className="ml-1">{getStatusText(application.status)}</span>
-                  </span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">{t('applications.experience')}</p>
-                  <p className="text-sm text-gray-600">{application.experience} {t('applications.yearsExperience')}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">{t('applications.certifications')}</p>
-                  <p className="text-sm text-gray-600">{application.certifications}</p>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">{t('applications.applicationLetter')}</p>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{application.message}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                <div className="flex flex-wrap gap-2">
-                  {application.status === 'pending' && (
-                    <>
-                      <button 
-                        onClick={() => handleStatusChange(application.id, 'approved')}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(application.submittedDate).toLocaleDateString('da-DK')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(application.status)}`}>
+                      {getStatusText(application.status)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleStatusUpdate(application.id, 'approved')}
+                        className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        title={t('applications.approve')}
                       >
-                        {t('applications.approve')}
+                        <Check className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleStatusChange(application.id, 'reviewed')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                      <button
+                        onClick={() => handleStatusUpdate(application.id, 'rejected')}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        title={t('applications.reject')}
                       >
-                        {t('applications.markReviewed')}
+                        <X className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleStatusChange(application.id, 'rejected')}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                      <button
+                        onClick={() => handleStatusUpdate(application.id, 'reviewed')}
+                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        title={t('applications.markReviewed')}
                       >
-                        {t('applications.reject')}
+                        <User className="h-4 w-4" />
                       </button>
-                    </>
-                  )}
-                  {application.status === 'reviewed' && (
-                    <>
-                      <button 
-                        onClick={() => handleStatusChange(application.id, 'approved')}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                      <button
+                        className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"
+                        title={t('applications.viewDetails')}
                       >
-                        {t('applications.approve')}
+                        <Eye className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleStatusChange(application.id, 'rejected')}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        {t('applications.reject')}
-                      </button>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                    {t('applications.contactApplicant')}
-                  </button>
-                  <button className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                    {t('applications.viewCV')}
-                  </button>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                    {t('applications.seeDetails')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {filteredApplications.length === 0 && (
         <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('applications.noApplications')}</h3>
-          <p className="text-gray-600">
+          <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('applications.noApplications')}</h3>
+          <p className="text-gray-600 dark:text-gray-400">
             {t('common.noData')}
           </p>
         </div>

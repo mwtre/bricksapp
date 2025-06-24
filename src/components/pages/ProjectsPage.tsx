@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building, MapPin, Calendar, Users, Plus, Search, Filter } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockProjects, mockUsers, mockMaterials } from '../../data/mockData';
+import { projectService, userService } from '../../services/database';
+import { Project, User } from '../../types';
 
 interface ProjectsPageProps {
   userRole: string;
@@ -11,9 +12,45 @@ interface ProjectsPageProps {
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
 
-  const filteredProjects = mockProjects.filter(project => {
+  // Load projects and users from Supabase
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [projectsData, usersData] = await Promise.all([
+        projectService.getProjects(),
+        userService.getUsers()
+      ]);
+      console.log('Loaded projects from Supabase:', projectsData);
+      console.log('Loaded users from Supabase:', usersData);
+      setProjects(projectsData);
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    
+    // Subscribe to real-time project updates
+    const subscription = projectService.subscribeToProjects((updatedProjects) => {
+      console.log('Real-time project update received:', updatedProjects);
+      setProjects(updatedProjects);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.address.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
@@ -43,18 +80,40 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading projects...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {userRole === 'project_manager' ? t('projects.allProjects') : t('projects.myProjects')}
         </h1>
-        {userRole === 'project_manager' && (
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            {t('projects.newProject')}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={loadData}
+            className="flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
           </button>
-        )}
+          {userRole === 'project_manager' && (
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
+              <Plus className="h-4 w-4 mr-2" />
+              {t('projects.newProject')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -91,8 +150,8 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredProjects.map((project) => {
           const progress = Math.round((project.brickCountUsed / project.brickCountRequired) * 100);
-          const materials = mockMaterials.filter(m => m.projectId === project.id);
-          const assignedBricklayers = mockUsers.filter(u => 
+          const materials = project.materials || [];
+          const assignedBricklayers = users.filter(u => 
             project.assignedBricklayers.includes(u.id)
           );
           
@@ -177,7 +236,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ userRole, userId }) 
                   <div className="mb-4">
                     <p className="text-sm font-medium text-gray-700 mb-2">{t('projects.materialsTitle')}</p>
                     <div className="space-y-1">
-                      {materials.slice(0, 2).map((material) => (
+                      {materials.slice(0, 2).map((material: any) => (
                         <div key={material.id} className="flex justify-between items-center text-sm bg-gray-50 rounded p-2">
                           <span className="text-gray-600">{material.type}</span>
                           <span className="font-medium text-gray-900">
