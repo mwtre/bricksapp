@@ -49,7 +49,8 @@ export const ProjectManagerDashboard: React.FC = () => {
   
   const handleProjectCreated = (newProject: Project) => {
     console.log('New project created:', newProject);
-    // The subscription will automatically update the projects list
+    // Manually refresh the projects list since the user ID might not match
+    loadProjects();
   };
   
   const handleSaveAssignments = async (projectId: string, assignedBricklayers: string[]) => {
@@ -72,7 +73,8 @@ export const ProjectManagerDashboard: React.FC = () => {
     }
   };
   
-  const managedProjects = projects.filter((p: Project) => p.managerId === user?.id);
+  // Show all projects for now since user ID matching is problematic with mock users
+  const managedProjects = projects;
   const activeProjects = managedProjects.filter((p: Project) => p.status === 'active').length;
   const completedProjects = managedProjects.filter((p: Project) => p.status === 'completed').length;
   const delayedProjects = managedProjects.filter((p: Project) => p.status === 'delayed').length;
@@ -208,8 +210,17 @@ export const ProjectManagerDashboard: React.FC = () => {
 
       {/* Project Overview */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.projectOverview')}</h2>
+          <button
+            onClick={loadProjects}
+            className="flex items-center px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
         <div className="p-6">
           {managedProjects.length === 0 ? (
