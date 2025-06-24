@@ -219,6 +219,36 @@ export const projectService = {
     }
 
     try {
+      // Handle manager_id - if it's not a UUID, try to find a real user
+      let managerId = project.managerId;
+      
+      // Check if managerId is a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(managerId)) {
+        console.log('Manager ID is not a valid UUID, trying to find a real user');
+        
+        // Try to find a project manager in the database
+        const { data: users, error: usersError } = await supabase
+          .from(TABLES.USERS)
+          .select('id')
+          .eq('role', 'project_manager')
+          .limit(1);
+        
+        if (usersError) {
+          console.error('Error finding project manager:', usersError);
+          throw new Error('Could not find a valid project manager');
+        }
+        
+        if (users && users.length > 0) {
+          managerId = users[0].id;
+          console.log('Using found project manager ID:', managerId);
+        } else {
+          // If no project manager found, use a fallback UUID (this should not happen in production)
+          managerId = '00000000-0000-0000-0000-000000000001';
+          console.log('No project manager found, using fallback ID:', managerId);
+        }
+      }
+
       // Transform camelCase to snake_case for database
       const projectData = {
         name: project.name,
@@ -229,7 +259,7 @@ export const projectService = {
         start_date: project.startDate,
         end_date: project.endDate,
         status: project.status,
-        manager_id: project.managerId,
+        manager_id: managerId,
         brick_type: project.brickType,
         bricks_per_sqm: project.bricksPerSqm,
         cost_per_brick: project.costPerBrick,
@@ -240,7 +270,7 @@ export const projectService = {
       };
 
       console.log('Inserting project data:', projectData);
-      console.log('Manager ID being used:', project.managerId);
+      console.log('Manager ID being used:', managerId);
 
       const { data, error } = await supabase
         .from(TABLES.PROJECTS)
