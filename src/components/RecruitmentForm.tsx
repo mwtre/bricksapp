@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, FileText, Upload, Send, Hammer } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { addApplication } from '../data/mockData';
+import { applicationService } from '../services/database';
 
 interface RecruitmentFormProps {
   onApplicationSubmitted?: () => void;
@@ -45,8 +45,8 @@ export const RecruitmentForm: React.FC<RecruitmentFormProps> = ({ onApplicationS
       // Convert experience string to number
       const experienceYears = parseInt(formData.experience) || 0;
       
-      // Save the application
-      const newApplication = addApplication({
+      // Save the application to Supabase
+      const newApplication = await applicationService.createApplication({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -55,7 +55,7 @@ export const RecruitmentForm: React.FC<RecruitmentFormProps> = ({ onApplicationS
         message: formData.message
       });
 
-      console.log('Application saved:', newApplication);
+      console.log('Application saved to Supabase:', newApplication);
       
       // Notify parent component that a new application was submitted
       if (onApplicationSubmitted) {
@@ -75,7 +75,7 @@ export const RecruitmentForm: React.FC<RecruitmentFormProps> = ({ onApplicationS
 
       alert(`${t('recruitment.success')}\n\nApplication ID: ${newApplication.id}\nName: ${newApplication.name}\n\nTo view this application:\n1. Login as recruiter (anne@bricksapp.dk)\n2. Check the recruiter dashboard\n3. Or go to Applications page`);
     } catch (error) {
-      console.error('Error saving application:', error);
+      console.error('Error saving application to Supabase:', error);
       alert(t('recruitment.error'));
     } finally {
       setIsSubmitting(false);

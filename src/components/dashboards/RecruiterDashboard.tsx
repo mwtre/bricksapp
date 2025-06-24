@@ -2,28 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { mockApplications, getApplications } from '../../data/mockData';
+import { applicationService } from '../../services/database';
 import { Application } from '../../types';
 
 export const RecruiterDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [applications, setApplications] = useState(getApplications());
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Refresh applications when component mounts or when applications are updated
+  // Load applications from Supabase
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const applicationsData = await applicationService.getApplications();
+      console.log('Loaded applications from Supabase for recruiter dashboard:', applicationsData);
+      setApplications(applicationsData);
+    } catch (error) {
+      console.error('Error loading applications for recruiter dashboard:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const handleApplicationsUpdate = () => {
-      setApplications(getApplications());
-    };
-
-    // Listen for application updates
-    window.addEventListener('applications-updated', handleApplicationsUpdate);
+    loadData();
     
-    // Initial load
-    setApplications(getApplications());
-
+    // Subscribe to real-time application updates
+    const subscription = applicationService.subscribeToApplications((updatedApplications) => {
+      console.log('Real-time application update received in recruiter dashboard:', updatedApplications);
+      setApplications(updatedApplications);
+    });
+    
     return () => {
-      window.removeEventListener('applications-updated', handleApplicationsUpdate);
+      subscription.unsubscribe();
     };
   }, []);
   
@@ -42,17 +54,39 @@ export const RecruiterDashboard: React.FC = () => {
 
   const recentApplications = applications.slice(0, 5);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading recruiter dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('role.recruiter')} Dashboard</h1>
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {new Date().toLocaleDateString('da-DK', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={loadData}
+            className="flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+          <div className="text-sm text-gray-500 dark:text-gray-300">
+            {new Date().toLocaleDateString('da-DK', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </div>
         </div>
       </div>
 
