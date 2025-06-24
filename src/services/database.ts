@@ -240,6 +240,7 @@ export const projectService = {
       };
 
       console.log('Inserting project data:', projectData);
+      console.log('Manager ID being used:', project.managerId);
 
       const { data, error } = await supabase
         .from(TABLES.PROJECTS)
@@ -249,6 +250,12 @@ export const projectService = {
       
       if (error) {
         console.error('Supabase error creating project:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 

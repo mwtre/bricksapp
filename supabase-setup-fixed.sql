@@ -1,6 +1,9 @@
 -- BricksApp Database Schema for Supabase (Fixed Version)
 -- Run this in your Supabase SQL Editor
 
+-- Enable Row Level Security
+ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
+
 -- Create users table
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -77,45 +80,18 @@ ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.project_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for users table
-CREATE POLICY "Users can view all users" ON public.users
-    FOR SELECT USING (true);
+-- TEMPORARY: Allow all operations for testing (remove this in production)
+DROP POLICY IF EXISTS "Allow all operations" ON public.users;
+CREATE POLICY "Allow all operations" ON public.users FOR ALL USING (true);
 
-CREATE POLICY "Users can update their own profile" ON public.users
-    FOR UPDATE USING (auth.uid()::text = id::text);
+DROP POLICY IF EXISTS "Allow all operations" ON public.projects;
+CREATE POLICY "Allow all operations" ON public.projects FOR ALL USING (true);
 
-CREATE POLICY "Project managers can create users" ON public.users
-    FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow all operations" ON public.project_assignments;
+CREATE POLICY "Allow all operations" ON public.project_assignments FOR ALL USING (true);
 
--- Create RLS policies for projects table
-CREATE POLICY "Users can view all projects" ON public.projects
-    FOR SELECT USING (true);
-
-CREATE POLICY "Project managers can create projects" ON public.projects
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Project managers can update their projects" ON public.projects
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Project managers can delete their projects" ON public.projects
-    FOR DELETE USING (true);
-
--- Create RLS policies for project assignments table
-CREATE POLICY "Users can view project assignments" ON public.project_assignments
-    FOR SELECT USING (true);
-
-CREATE POLICY "Project managers can manage assignments" ON public.project_assignments
-    FOR ALL USING (true);
-
--- Create RLS policies for applications table
-CREATE POLICY "Recruiters can view all applications" ON public.applications
-    FOR SELECT USING (true);
-
-CREATE POLICY "Anyone can create applications" ON public.applications
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Recruiters can update applications" ON public.applications
-    FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Allow all operations" ON public.applications;
+CREATE POLICY "Allow all operations" ON public.applications FOR ALL USING (true);
 
 -- Insert sample data
 INSERT INTO public.users (email, name, role, phone) VALUES
