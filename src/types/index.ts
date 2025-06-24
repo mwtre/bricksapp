@@ -5,6 +5,15 @@ export interface User {
   role: 'bricklayer' | 'project_manager' | 'recruiter';
   phone?: string;
   assignedProjects?: string[];
+  avatar?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  lastLogin?: string;
+  preferences?: {
+    language: string;
+    theme: string;
+    notifications: boolean;
+  };
 }
 
 export interface Project {
@@ -59,6 +68,7 @@ export interface Application {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  googleLogin: () => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }

@@ -69,6 +69,7 @@ export default {
   'login.loginButton': 'Login',
   'login.loggingIn': 'Logging in...',
   'login.invalidCredentials': 'Invalid email or password',
+  'login.googleLoginFailed': 'Google login failed. Please try again.',
   'login.demoAccounts': 'Demo Accounts',
   'login.demoPassword': 'Password for all accounts: password123',
   'login.managementTeam': 'Management Team',

@@ -18,6 +18,9 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const hasPlayedSound = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  console.log('AppContent: Rendering with user:', user, 'hasSelectedLanguage:', hasSelectedLanguage);
 
   const testSound = () => {
     const audio = new Audio('./bricksund.mp3');
@@ -33,6 +36,7 @@ function AppContent() {
     // Mark as initialized after a short delay to ensure context is ready
     const timer = setTimeout(() => {
       setIsInitialized(true);
+      console.log('AppContent: Initialized');
     }, 100);
     
     return () => clearTimeout(timer);
@@ -73,8 +77,27 @@ function AppContent() {
     }
   }, [hasSelectedLanguage, isInitialized]);
 
+  // Show error if something went wrong
+  if (error) {
+    return (
+      <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show language selection modal if language hasn't been selected
   if (!hasSelectedLanguage) {
+    console.log('AppContent: Showing language selection modal');
     return (
       <div>
         <LanguageSelectionModal 
@@ -92,32 +115,41 @@ function AppContent() {
   }
 
   if (!user) {
+    console.log('AppContent: Showing login page');
     return <Login />;
   }
 
+  console.log('AppContent: Rendering dashboard for user:', user.role);
+
   const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        switch (user.role) {
-          case 'bricklayer':
-            return <BricklayerDashboard />;
-          case 'project_manager':
-            return <ProjectManagerDashboard />;
-          case 'recruiter':
-            return <RecruiterDashboard />;
-          default:
-            return <div>Invalid role</div>;
-        }
-      case 'projects':
-        return <ProjectsPage userRole={user.role} userId={user.id} />;
-      case 'team':
-        return <TeamPage />;
-      case 'applications':
-        return <ApplicationsPage />;
-      case 'recruitment':
-        return <RecruitmentForm />;
-      default:
-        return <div>Page not found</div>;
+    try {
+      switch (currentPage) {
+        case 'dashboard':
+          switch (user.role) {
+            case 'bricklayer':
+              return <BricklayerDashboard />;
+            case 'project_manager':
+              return <ProjectManagerDashboard />;
+            case 'recruiter':
+              return <RecruiterDashboard />;
+            default:
+              return <div>Invalid role: {user.role}</div>;
+          }
+        case 'projects':
+          return <ProjectsPage userRole={user.role} userId={user.id} />;
+        case 'team':
+          return <TeamPage />;
+        case 'applications':
+          return <ApplicationsPage />;
+        case 'recruitment':
+          return <RecruitmentForm />;
+        default:
+          return <div>Page not found: {currentPage}</div>;
+      }
+    } catch (err) {
+      console.error('Error rendering page:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      return <div>Error loading page</div>;
     }
   };
 
@@ -129,6 +161,8 @@ function AppContent() {
 }
 
 function App() {
+  console.log('App: Rendering main App component');
+  
   return (
     <LanguageProvider>
       <AuthProvider>

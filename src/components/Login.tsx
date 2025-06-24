@@ -9,7 +9,6 @@ import { ConstructionTutorials } from './ConstructionTutorials';
 import { VideoBackground } from './VideoBackground';
 import { AppTutorial } from './AppTutorial';
 import AnimatedLogo from './AnimatedLogo';
-import AnimatedTrowel from './AnimatedTrowel';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,7 +17,7 @@ export const Login: React.FC = () => {
   const [showRecruitment, setShowRecruitment] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [loginType, setLoginType] = useState<'management' | 'bricklayer'>('management');
-  const { login, isLoading } = useAuth();
+  const { login, googleLogin, isLoading } = useAuth();
   const { t, setHasSelectedLanguage } = useLanguage();
   const hasPlayedSound = useRef(false);
 
@@ -72,10 +71,11 @@ export const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    // TODO: Implement Google OAuth
-    console.log('Google login clicked');
-    // For now, show recruitment form
-    setShowRecruitment(true);
+    setError('');
+    const success = await googleLogin();
+    if (!success) {
+      setError(t('login.googleLoginFailed'));
+    }
   };
 
   const demoAccounts = [
