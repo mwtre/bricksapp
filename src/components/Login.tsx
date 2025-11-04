@@ -121,7 +121,7 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
               <div className="relative">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
                   <img 
-                    src={`${import.meta.env.BASE_URL}expat%20hero.jpeg`}
+                    src={`${import.meta.env.BASE_URL}expathero.jpeg`}
                     alt="Expat Hero"
                     className="w-full h-full object-cover"
                   />
@@ -306,7 +306,7 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
               <div className="relative">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
                   <img 
-                    src={`${import.meta.env.BASE_URL}expat%20hero.jpeg`}
+                    src={`${import.meta.env.BASE_URL}expathero.jpeg`}
                     alt="Expat Hero"
                     className="w-full h-full object-cover"
                   />
