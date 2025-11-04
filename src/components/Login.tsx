@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock, HelpCircle, RotateCcw } from 'lucide-react';
+import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock, HelpCircle, RotateCcw, Users, Star, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -8,15 +8,20 @@ import { RecruitmentForm } from './RecruitmentForm';
 import { ConstructionTutorials } from './ConstructionTutorials';
 import { VideoBackground } from './VideoBackground';
 import { AppTutorial } from './AppTutorial';
-import AnimatedLogo from './AnimatedLogo';
+import RecruitmentPortal from './RecruitmentPortal';
 
-export const Login: React.FC = () => {
+interface LoginProps {
+  onBackToLanding?: () => void;
+}
+
+export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showRecruitment, setShowRecruitment] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [loginType, setLoginType] = useState<'management' | 'bricklayer'>('management');
+  const [showRecruitmentPortal, setShowRecruitmentPortal] = useState(false);
+  const [loginType, setLoginType] = useState<'company' | 'heroes' | 'database'>('company');
   const { login, googleLogin, isLoading } = useAuth();
   const { t, setHasSelectedLanguage } = useLanguage();
   const hasPlayedSound = useRef(false);
@@ -55,7 +60,7 @@ export const Login: React.FC = () => {
   }, []);
 
   const resetLanguageSelection = () => {
-    localStorage.removeItem('bricksapp-language-selected');
+    localStorage.removeItem('expatheros-language-selected');
     setHasSelectedLanguage(false);
     window.location.reload();
   };
@@ -79,9 +84,9 @@ export const Login: React.FC = () => {
   };
 
   const demoAccounts = [
-    { email: 'lars@bricksapp.dk', role: t('role.bricklayer') },
-    { email: 'mette@bricksapp.dk', role: t('role.projectManager') },
-    { email: 'anne@bricksapp.dk', role: t('role.recruiter') }
+    { email: 'lars@expatheros.nl', role: 'Company' },
+    { email: 'mette@expatheros.nl', role: 'Heroes' },
+    { email: 'anne@expatheros.nl', role: t('role.recruiter') }
   ];
 
   if (showRecruitment) {
@@ -113,10 +118,16 @@ export const Login: React.FC = () => {
         <div className="max-w-7xl mx-auto p-4 relative z-10">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <AnimatedLogo />
+              <div className="relative">
+                <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
+                  <img 
+                    src={`${import.meta.env.BASE_URL}expat%20hero.jpeg`}
+                    alt="Expat Hero"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">{t('login.welcomeNewBricklayer')}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -256,13 +267,21 @@ export const Login: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
-      <VideoBackground videoSrc="/intro.mp4" playOnce={true} />
-      
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-4 right-4 flex items-center space-x-2 z-50">
+        {onBackToLanding && (
+          <button
+            onClick={onBackToLanding}
+            className="flex items-center text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold"
+            title="Back to Landing Page"
+          >
+            <ArrowRight className="h-4 w-4 mr-1 rotate-180" />
+            Back to Landing
+          </button>
+        )}
         <button
           onClick={() => setShowTutorial(true)}
-          className="flex items-center text-sm text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
+          className="flex items-center text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-lg"
           title="App Tutorial"
         >
           <HelpCircle className="h-4 w-4 mr-1" />
@@ -270,7 +289,7 @@ export const Login: React.FC = () => {
         </button>
         <button
           onClick={resetLanguageSelection}
-          className="flex items-center text-sm text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
+          className="flex items-center text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-lg"
           title="Reset Language Selection (for testing)"
         >
           <RotateCcw className="h-4 w-4 mr-1" />
@@ -281,42 +300,59 @@ export const Login: React.FC = () => {
       </div>
       
       <div className="max-w-md w-full relative z-10">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-xl p-8 border border-white/30 dark:border-gray-700/30">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 border border-gray-200 dark:border-gray-700">
           <div className="text-center mb-8">
             <div className="flex justify-center items-center mb-4">
-              <AnimatedLogo size={120} />
+              <div className="relative">
+                <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
+                  <img 
+                    src={`${import.meta.env.BASE_URL}expat%20hero.jpeg`}
+                    alt="Expat Hero"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('app.title')}</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">{t('app.subtitle')}</p>
           </div>
 
           {/* Login Type Selector */}
           <div className="mb-6">
             <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               <button
-                onClick={() => setLoginType('management')}
+                onClick={() => setLoginType('company')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  loginType === 'management'
+                  loginType === 'company'
                     ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                {t('login.managementTeam')}
+                Company Login
               </button>
               <button
-                onClick={() => setLoginType('bricklayer')}
+                onClick={() => setLoginType('heroes')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  loginType === 'bricklayer'
+                  loginType === 'heroes'
                     ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                {t('login.bricklayers')}
+                Heroes Login
+              </button>
+              <button
+                onClick={() => setLoginType('database')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  loginType === 'database'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Users className="h-4 w-4 mr-1 inline" />
+                Access Heroes Database
               </button>
             </div>
           </div>
 
-          {loginType === 'management' ? (
+          {loginType === 'company' ? (
             /* Management Team Login */
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -368,8 +404,57 @@ export const Login: React.FC = () => {
                 {isLoading ? t('login.loggingIn') : t('login.loginButton')}
               </button>
             </form>
+          ) : loginType === 'database' ? (
+            /* Access Heroes Database */
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                  <Users className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Access Heroes Database</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Browse available construction professionals and connect with skilled workers
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Available Workers</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    View profiles of skilled bricklayers, tilers, and construction professionals
+                  </p>
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <Star className="h-4 w-4 mr-1 text-yellow-500" />
+                    <span>4.7+ average rating</span>
+                    <span className="mx-2">•</span>
+                    <span>Verified professionals</span>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Advanced Filtering</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Filter by skills, location, availability, and experience level
+                  </p>
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <MapPin className="h-4 w-4 mr-1 text-green-500" />
+                    <span>Multiple locations</span>
+                    <span className="mx-2">•</span>
+                    <span>Real-time availability</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowRecruitmentPortal(true)}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium flex items-center justify-center"
+              >
+                <Users className="h-5 w-5 mr-2" />
+                Open Heroes Database
+              </button>
+            </div>
           ) : (
-            /* Bricklayer Login */
+            /* Heroes Login */
             <div className="space-y-6">
               <div className="text-center">
                 <p className="text-gray-600 dark:text-gray-400 mb-4">{t('login.bricklayerLoginDesc')}</p>
@@ -407,7 +492,7 @@ export const Login: React.FC = () => {
             </div>
           )}
 
-          {loginType === 'management' && (
+          {loginType === 'company' && (
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('login.demoAccounts')}</h3>
               <div className="space-y-2">
@@ -437,6 +522,12 @@ export const Login: React.FC = () => {
         onClose={() => setShowTutorial(false)}
         currentPage="login"
         onPageChange={() => {}}
+      />
+
+      {/* Recruitment Portal Modal */}
+      <RecruitmentPortal
+        isOpen={showRecruitmentPortal}
+        onClose={() => setShowRecruitmentPortal(false)}
       />
     </div>
   );

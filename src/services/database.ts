@@ -527,4 +527,187 @@ export const applicationService = {
       )
       .subscribe();
   }
+};
+
+// Worker Management
+export const workerService = {
+  // Get all active workers
+  async getWorkers(): Promise<any[]> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, returning empty workers array');
+      return [];
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from(TABLES.WORKERS)
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Supabase error getting workers:', error);
+        throw error;
+      }
+
+      console.log('Raw workers data from Supabase:', data);
+
+      // Transform snake_case to camelCase and parse JSON fields
+      const transformedWorkers = (data || []).map((worker: any) => ({
+        id: worker.id,
+        applicationId: worker.application_id,
+        userId: worker.user_id,
+        name: worker.name,
+        photo: worker.photo,
+        phone: worker.phone,
+        email: worker.email,
+        skills: worker.skills || [],
+        yearsExperience: worker.years_experience,
+        location: worker.location,
+        availability: worker.availability || { status: 'available' },
+        portfolio: worker.portfolio || [],
+        rating: worker.rating || 0,
+        completedProjects: worker.completed_projects || 0,
+        hourlyRateMin: worker.hourly_rate_min,
+        hourlyRateMax: worker.hourly_rate_max,
+        isActive: worker.is_active,
+        isVerified: worker.is_verified,
+        createdAt: worker.created_at,
+        updatedAt: worker.updated_at
+      }));
+
+      console.log('Transformed workers:', transformedWorkers);
+      return transformedWorkers;
+    } catch (error) {
+      console.error('Error in getWorkers:', error);
+      throw error;
+    }
+  },
+
+  // Get worker by ID
+  async getWorkerById(id: string): Promise<any | null> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, returning null for getWorkerById');
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.WORKERS)
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    
+    if (data) {
+      return {
+        id: data.id,
+        applicationId: data.application_id,
+        userId: data.user_id,
+        name: data.name,
+        photo: data.photo,
+        phone: data.phone,
+        email: data.email,
+        skills: data.skills || [],
+        yearsExperience: data.years_experience,
+        location: data.location,
+        availability: data.availability || { status: 'available' },
+        portfolio: data.portfolio || [],
+        rating: data.rating || 0,
+        completedProjects: data.completed_projects || 0,
+        hourlyRateMin: data.hourly_rate_min,
+        hourlyRateMax: data.hourly_rate_max,
+        isActive: data.is_active,
+        isVerified: data.is_verified,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+    }
+    
+    return null;
+  },
+
+  // Create worker from approved application
+  async createWorkerFromApplication(applicationId: string, workerData: any): Promise<any> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, creating mock worker');
+      return { id: Math.random().toString(36).substr(2, 9), ...workerData };
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.WORKERS)
+      .insert([{
+        application_id: applicationId,
+        name: workerData.name,
+        photo: workerData.photo,
+        phone: workerData.phone,
+        email: workerData.email,
+        skills: workerData.skills,
+        years_experience: workerData.yearsExperience,
+        location: workerData.location,
+        availability: workerData.availability,
+        portfolio: workerData.portfolio,
+        rating: workerData.rating,
+        completed_projects: workerData.completedProjects,
+        hourly_rate_min: workerData.hourlyRateMin,
+        hourly_rate_max: workerData.hourlyRateMax,
+        is_verified: workerData.isVerified
+      }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Update worker
+  async updateWorker(id: string, updates: any): Promise<any> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, returning mock updated worker');
+      return { id, ...updates };
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.WORKERS)
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Delete worker (soft delete by setting is_active to false)
+  async deleteWorker(id: string): Promise<void> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, skipping deleteWorker');
+      return;
+    }
+
+    const { error } = await supabase
+      .from(TABLES.WORKERS)
+      .update({ is_active: false })
+      .eq('id', id);
+    
+    if (error) throw error;
+  },
+
+  // Subscribe to worker changes
+  subscribeToWorkers(callback: (workers: any[]) => void) {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, skipping subscription');
+      return { unsubscribe: () => {} };
+    }
+
+    return supabase
+      .channel('workers')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: TABLES.WORKERS },
+        () => {
+          this.getWorkers().then(callback);
+        }
+      )
+      .subscribe();
+  }
 }; 

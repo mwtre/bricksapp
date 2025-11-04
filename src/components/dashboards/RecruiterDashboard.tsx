@@ -1,9 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle, Check, X, User, Trash2 } from 'lucide-react';
+import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle, Check, X, User, Trash2, Settings, Plus, Eye, Edit, Search, Filter } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { applicationService } from '../../services/database';
+import { applicationService, workerService } from '../../services/database';
 import { Application } from '../../types';
+import RecruitmentPortal from '../RecruitmentPortal';
+
+// Import vetrina components for worker management
+import SearchBar from '../vetrina/SearchBar';
+import WorkerCard from '../vetrina/WorkerCard';
+import WorkerModal from '../vetrina/WorkerModal';
+import FilterPanel from '../vetrina/FilterPanel';
+
+// Define types for worker management
+interface Skill {
+  name: string;
+  level: number;
+  icon: React.ComponentType<any>;
+}
+
+interface PortfolioItem {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  completedDate: string;
+  client: string;
+  skills: string[];
+}
+
+interface Worker {
+  id: string;
+  name: string;
+  photo: string;
+  phone: string;
+  email: string;
+  skills: Skill[];
+  yearsExperience: number;
+  location: string;
+  availability: {
+    status: 'available' | 'busy' | 'partially-available';
+    availableFrom?: string;
+    notes?: string;
+  };
+  portfolio: PortfolioItem[];
+  rating: number;
+  completedProjects: number;
+}
 
 export const RecruiterDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -12,39 +55,186 @@ export const RecruiterDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   
-  // Load applications from Supabase
+  // Recruitment Portal Management States
+  const [showRecruitmentPortal, setShowRecruitmentPortal] = useState(false);
+  const [showWorkerManagement, setShowWorkerManagement] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [showWorkerModal, setShowWorkerModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    location: '',
+    minRating: 0,
+    availability: '',
+    skills: [] as string[],
+    experience: '',
+    priceRange: ''
+  });
+
+  // Workers data from database
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [workersLoading, setWorkersLoading] = useState(true);
+  const [filteredWorkers, setFilteredWorkers] = useState<Worker[]>([]);
+
+  // Load applications and workers from Supabase
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const applicationsData = await applicationService.getApplications();
+      setWorkersLoading(true);
+      
+      const [applicationsData, workersData] = await Promise.all([
+        applicationService.getApplications(),
+        workerService.getWorkers()
+      ]);
+      
       console.log('Loaded applications from Supabase for recruiter dashboard:', applicationsData);
+      console.log('Loaded workers from Supabase for recruiter dashboard:', workersData);
+      
       setApplications(applicationsData);
+      setWorkers(workersData);
+      setFilteredWorkers(workersData);
     } catch (error) {
-      console.error('Error loading applications for recruiter dashboard:', error);
+      console.error('Error loading data for recruiter dashboard:', error);
     } finally {
       setIsLoading(false);
+      setWorkersLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
     
-    // Subscribe to real-time application updates
-    const subscription = applicationService.subscribeToApplications((updatedApplications) => {
+    // Subscribe to real-time updates
+    const applicationSubscription = applicationService.subscribeToApplications((updatedApplications) => {
       console.log('Real-time application update received in recruiter dashboard:', updatedApplications);
       setApplications(updatedApplications);
     });
     
+    const workerSubscription = workerService.subscribeToWorkers((updatedWorkers) => {
+      console.log('Real-time worker update received in recruiter dashboard:', updatedWorkers);
+      setWorkers(updatedWorkers);
+      setFilteredWorkers(updatedWorkers);
+    });
+    
     return () => {
-      subscription.unsubscribe();
+      applicationSubscription.unsubscribe();
+      workerSubscription.unsubscribe();
     };
   }, []);
+
+  // Filter workers based on search term and filters
+  useEffect(() => {
+    let filtered = workers;
+
+    // Search term filter
+    if (searchTerm) {
+      filtered = filtered.filter(worker =>
+        worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        worker.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        worker.skills.some(skill => skill.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Location filter
+    if (filters.location) {
+      filtered = filtered.filter(worker => worker.location.includes(filters.location));
+    }
+
+    // Rating filter
+    if (filters.minRating > 0) {
+      filtered = filtered.filter(worker => worker.rating >= filters.minRating);
+    }
+
+    // Availability filter
+    if (filters.availability) {
+      filtered = filtered.filter(worker => worker.availability.status === filters.availability);
+    }
+
+    // Skills filter
+    if (filters.skills.length > 0) {
+      filtered = filtered.filter(worker =>
+        filters.skills.some(skill =>
+          worker.skills.some(workerSkill => workerSkill.name === skill)
+        )
+      );
+    }
+
+    // Experience filter
+    if (filters.experience) {
+      const [min, max] = filters.experience.split('-').map(Number);
+      filtered = filtered.filter(worker => {
+        if (max) {
+          return worker.yearsExperience >= min && worker.yearsExperience <= max;
+        } else {
+          return worker.yearsExperience >= min;
+        }
+      });
+    }
+
+    setFilteredWorkers(filtered);
+  }, [searchTerm, filters, workers]);
 
   const handleStatusUpdate = async (applicationId: string, newStatus: 'pending' | 'reviewed' | 'approved' | 'rejected') => {
     try {
       setUpdatingId(applicationId);
       await applicationService.updateApplicationStatus(applicationId, newStatus);
       console.log(`Application ${applicationId} status updated to ${newStatus}`);
+      
+      // If application is approved, create a worker profile
+      if (newStatus === 'approved') {
+        const application = applications.find(app => app.id === applicationId);
+        if (application) {
+          // Parse the certifications field to extract worker data
+          const certParts = application.certifications?.split(' | ') || [];
+          const skillsMatch = certParts.find(part => part.startsWith('Skills: '));
+          const locationMatch = certParts.find(part => part.startsWith('Location: '));
+          const rateMatch = certParts.find(part => part.startsWith('Rate: '));
+          const availabilityMatch = certParts.find(part => part.startsWith('Availability: '));
+          
+          // Extract skills
+          const skills = skillsMatch ? skillsMatch.replace('Skills: ', '').split(', ') : ['Bricklaying'];
+          const skillsWithLevels = skills.map(skill => ({
+            name: skill,
+            level: Math.min(95, 70 + application.experience * 3),
+            icon: 'Hammer'
+          }));
+          
+          // Extract location
+          const location = locationMatch ? locationMatch.replace('Location: ', '') : 'Denmark';
+          
+          // Set default hourly rates since they're no longer collected in the form
+          const minRate = 35.0;
+          const maxRate = 55.0;
+          
+          // Extract availability
+          const availabilityStatus = availabilityMatch ? availabilityMatch.replace('Availability: ', '') : 'available';
+          
+          // Create worker data from application
+          const workerData = {
+            name: application.name,
+            photo: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face&random=${Math.random()}`,
+            phone: application.phone,
+            email: application.email,
+            skills: skillsWithLevels,
+            yearsExperience: application.experience,
+            location: location,
+            availability: {
+              status: availabilityStatus as 'available' | 'partially-available' | 'busy',
+              availableFrom: new Date().toISOString().split('T')[0],
+              notes: 'Available for immediate start'
+            },
+            portfolio: [],
+            rating: 4.0, // Default rating
+            completedProjects: 0,
+            hourlyRateMin: minRate,
+            hourlyRateMax: maxRate,
+            isVerified: true
+          };
+          
+          await workerService.createWorkerFromApplication(applicationId, workerData);
+          console.log('Worker created from approved application:', applicationId);
+        }
+      }
     } catch (error) {
       console.error('Error updating application status:', error);
       alert('Error updating application status');
@@ -66,6 +256,53 @@ export const RecruiterDashboard: React.FC = () => {
         setUpdatingId(null);
       }
     }
+  };
+
+  // Worker Management Functions
+  const handleViewWorker = (workerId: string) => {
+    const worker = workers.find(w => w.id === workerId);
+    if (worker) {
+      setSelectedWorker(worker);
+      setShowWorkerModal(true);
+    }
+  };
+
+  const handleEditWorker = (workerId: string) => {
+    // Handle edit functionality
+    console.log('Edit worker:', workerId);
+  };
+
+  const handleContactWorker = (workerId: string) => {
+    // Handle contact functionality
+    console.log('Contact worker:', workerId);
+  };
+
+  const handleAddWorker = () => {
+    // Handle add new worker functionality
+    console.log('Add new worker');
+  };
+
+  const handleDeleteWorker = async (workerId: string) => {
+    if (window.confirm('Are you sure you want to remove this worker from the portal?')) {
+      try {
+        await workerService.deleteWorker(workerId);
+        console.log('Worker deleted:', workerId);
+      } catch (error) {
+        console.error('Error deleting worker:', error);
+        alert('Error deleting worker');
+      }
+    }
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.location) count++;
+    if (filters.minRating > 0) count++;
+    if (filters.availability) count++;
+    if (filters.skills.length > 0) count++;
+    if (filters.experience) count++;
+    if (filters.priceRange) count++;
+    return count;
   };
   
   const totalApplications = applications.length;
@@ -90,6 +327,119 @@ export const RecruiterDashboard: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading recruiter dashboard...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (showRecruitmentPortal) {
+    return (
+      <RecruitmentPortal
+        isOpen={showRecruitmentPortal}
+        onClose={() => setShowRecruitmentPortal(false)}
+      />
+    );
+  }
+
+  if (showWorkerManagement) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Worker Management</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage workers in the Recruitment Portal</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowWorkerManagement(false)}
+              className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+            <button
+              onClick={handleAddWorker}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Worker
+            </button>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <SearchBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onFilterClick={() => setShowFilters(true)}
+          activeFiltersCount={getActiveFiltersCount()}
+        />
+
+        {/* Workers Grid */}
+        {workersLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-gray-400 mb-2">Loading workers...</h3>
+            <p className="text-gray-500">Please wait while we fetch the latest data</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredWorkers.map(worker => (
+                <div key={worker.id} className="relative">
+                  <WorkerCard
+                    worker={worker}
+                    onView={handleViewWorker}
+                    onEdit={handleEditWorker}
+                    onContact={handleContactWorker}
+                  />
+                  {/* Management Overlay */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEditWorker(worker.id)}
+                      className="p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                      title="Edit Worker"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteWorker(worker.id)}
+                      className="p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                      title="Remove Worker"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredWorkers.length === 0 && (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No workers found</h3>
+                <p className="text-gray-500">Try adjusting your search criteria or add new workers</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Filter Panel */}
+        <FilterPanel
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
+
+        {/* Worker Modal */}
+        <WorkerModal
+          worker={selectedWorker}
+          isOpen={showWorkerModal}
+          onClose={() => {
+            setShowWorkerModal(false);
+            setSelectedWorker(null);
+          }}
+        />
       </div>
     );
   }
@@ -145,6 +495,39 @@ export const RecruiterDashboard: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Recruitment Portal Management Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recruitment Portal Management</h2>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {workers.length} active workers
+            </span>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setShowRecruitmentPortal(true)}
+            className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <span className="text-gray-700 dark:text-gray-300">View Portal</span>
+          </button>
+          <button
+            onClick={() => setShowWorkerManagement(true)}
+            className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <Users className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+            <span className="text-gray-700 dark:text-gray-300">Manage Workers</span>
+          </button>
+          <button className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
+            <span className="text-gray-700 dark:text-gray-300">Portal Settings</span>
+          </button>
+        </div>
       </div>
 
       {/* Recent Applications */}

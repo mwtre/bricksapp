@@ -48,6 +48,11 @@ export default {
           '45%':  { transform: 'translate(0px, 0px) rotate(-30deg)' },
           '85%':  { transform: 'translate(0px, 0px) rotate(-30deg)' },
           '100%': { transform: 'translate(80px, 0px) rotate(-30deg)' }
+        },
+        loadingBar: {
+          '0%': { transform: 'translateX(-100%)' },
+          '50%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(100%)' }
         }
       },
       animation: {

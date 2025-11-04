@@ -65,6 +65,30 @@ CREATE TABLE IF NOT EXISTS public.applications (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create workers table for recruitment portal
+CREATE TABLE IF NOT EXISTS public.workers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    application_id UUID REFERENCES public.applications(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    photo TEXT,
+    phone TEXT NOT NULL,
+    email TEXT NOT NULL,
+    skills JSONB DEFAULT '[]'::jsonb,
+    years_experience INTEGER NOT NULL,
+    location TEXT NOT NULL,
+    availability JSONB DEFAULT '{"status": "available", "availableFrom": null, "notes": ""}'::jsonb,
+    portfolio JSONB DEFAULT '[]'::jsonb,
+    rating DECIMAL(3,2) DEFAULT 0.0,
+    completed_projects INTEGER DEFAULT 0,
+    hourly_rate_min DECIMAL(10,2),
+    hourly_rate_max DECIMAL(10,2),
+    is_active BOOLEAN DEFAULT true,
+    is_verified BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_projects_manager_id ON public.projects(manager_id);
@@ -73,12 +97,17 @@ CREATE INDEX IF NOT EXISTS idx_project_assignments_project_id ON public.project_
 CREATE INDEX IF NOT EXISTS idx_project_assignments_user_id ON public.project_assignments(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON public.applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_submitted_date ON public.applications(submitted_date);
+CREATE INDEX IF NOT EXISTS idx_workers_location ON public.workers(location);
+CREATE INDEX IF NOT EXISTS idx_workers_availability ON public.workers USING GIN(availability);
+CREATE INDEX IF NOT EXISTS idx_workers_skills ON public.workers USING GIN(skills);
+CREATE INDEX IF NOT EXISTS idx_workers_is_active ON public.workers(is_active);
 
 -- Enable Row Level Security on all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.project_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workers ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for users table
 CREATE POLICY "Users can view all users" ON public.users
@@ -157,6 +186,37 @@ CREATE POLICY "Recruiters can update applications" ON public.applications
         )
     );
 
+-- Create RLS policies for workers table
+CREATE POLICY "Anyone can view active workers" ON public.workers
+    FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Recruiters can view all workers" ON public.workers
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = auth.uid() AND role = 'recruiter'
+        )
+    );
+
+CREATE POLICY "Recruiters can create workers" ON public.workers
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = auth.uid() AND role = 'recruiter'
+        )
+    );
+
+CREATE POLICY "Recruiters can update workers" ON public.workers
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = auth.uid() AND role = 'recruiter'
+        )
+    );
+
+CREATE POLICY "Workers can update their own profile" ON public.workers
+    FOR UPDATE USING (user_id = auth.uid());
+
 -- Insert sample data
 INSERT INTO public.users (email, name, role, phone) VALUES
     ('lars@bricksapp.dk', 'Lars Nielsen', 'bricklayer', '+45 12 34 56 78'),
@@ -176,4 +236,42 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.applications (name, email, phone, experience, certifications, message, status, submitted_date) VALUES
     ('Jens Mortensen', 'jens@email.dk', '+45 12 34 56 78', 8, 'Faglig uddannelse som murer, AMU kurser', 'Jeg har stor erfaring med forskellige murprojekter og er interesseret i at blive en del af jeres team.', 'pending', '2024-01-18'),
     ('Sofie Larsen', 'sofie@email.dk', '+45 87 65 43 21', 3, 'Grundforløb bygge og anlæg, Hovedforløb murer', 'Nyuddannet murer søger spændende projekter i København området.', 'reviewed', '2024-01-15')
+ON CONFLICT DO NOTHING;
+
+-- Insert sample workers (approved applications converted to workers)
+INSERT INTO public.workers (application_id, name, photo, phone, email, skills, years_experience, location, availability, portfolio, rating, completed_projects, hourly_rate_min, hourly_rate_max, is_verified) VALUES
+    (
+        (SELECT id FROM public.applications WHERE email = 'jens@email.dk'),
+        'Jens Mortensen',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+        '+45 12 34 56 78',
+        'jens@email.dk',
+        '[{"name": "Bricklaying", "level": 95, "icon": "Hammer"}, {"name": "Tiling", "level": 88, "icon": "Award"}, {"name": "Concrete", "level": 82, "icon": "Shield"}]',
+        8,
+        'København, Denmark',
+        '{"status": "available", "availableFrom": "2024-01-15", "notes": "Available for immediate start"}',
+        '[{"id": "1", "title": "Modern Office Complex", "description": "Complete brickwork for 12-story office building", "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=200&fit=crop", "completedDate": "2023-12-15", "client": "Nordic Construction", "skills": ["Bricklaying", "Tiling", "Concrete"]}]',
+        4.9,
+        45,
+        45.00,
+        65.00,
+        true
+    ),
+    (
+        (SELECT id FROM public.applications WHERE email = 'sofie@email.dk'),
+        'Sofie Larsen',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        '+45 87 65 43 21',
+        'sofie@email.dk',
+        '[{"name": "Bricklaying", "level": 85, "icon": "Hammer"}, {"name": "Tiling", "level": 78, "icon": "Award"}, {"name": "Woodwork", "level": 72, "icon": "Ruler"}]',
+        3,
+        'Aarhus, Denmark',
+        '{"status": "partially-available", "availableFrom": "2024-02-01", "notes": "Available for part-time work"}',
+        '[{"id": "2", "title": "Residential Complex", "description": "Brickwork for 50-unit residential project", "image": "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=200&fit=crop", "completedDate": "2023-11-30", "client": "Housing Development Corp", "skills": ["Bricklaying", "Tiling"]}]',
+        4.7,
+        23,
+        35.00,
+        50.00,
+        true
+    )
 ON CONFLICT DO NOTHING; 

@@ -21,7 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for stored auth on app load
-    const storedUser = localStorage.getItem('bricksapp_user');
+    const storedUser = localStorage.getItem('expatheros_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const foundUser = mockUsers.find(u => u.email === email);
           if (foundUser && password === 'password123') {
             setUser(foundUser);
-            localStorage.setItem('bricksapp_user', JSON.stringify(foundUser));
+            localStorage.setItem('expatheros_user', JSON.stringify(foundUser));
             setIsLoading(false);
             return true;
           }
@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           setUser(userData);
-          localStorage.setItem('bricksapp_user', JSON.stringify(userData));
+          localStorage.setItem('expatheros_user', JSON.stringify(userData));
           setIsLoading(false);
           return true;
         }
@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const foundUser = mockUsers.find(u => u.email === email);
         if (foundUser && password === 'password123') {
           setUser(foundUser);
-          localStorage.setItem('bricksapp_user', JSON.stringify(foundUser));
+          localStorage.setItem('expatheros_user', JSON.stringify(foundUser));
           setIsLoading(false);
           return true;
         }
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           setUser(userData);
-          localStorage.setItem('bricksapp_user', JSON.stringify(userData));
+          localStorage.setItem('expatheros_user', JSON.stringify(userData));
           setIsLoading(false);
           return true;
         } else {
@@ -163,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           
           setUser(userData);
-          localStorage.setItem('bricksapp_user', JSON.stringify(userData));
+          localStorage.setItem('expatheros_user', JSON.stringify(userData));
           setIsLoading(false);
           return true;
         }
@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('bricksapp_user');
+    localStorage.removeItem('expatheros_user');
     googleAuthService.signOut();
     if (isSupabaseAvailable() && supabase) {
       supabase.auth.signOut();

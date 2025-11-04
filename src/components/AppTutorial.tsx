@@ -29,7 +29,7 @@ export const AppTutorial: React.FC<AppTutorialProps> = ({
   const tutorialSteps: TutorialStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to BricksApp!',
+      title: 'Welcome to expatheros.nl!',
       description: 'This tutorial will guide you through the key features of our construction management platform. Let\'s get started!'
     },
     {
@@ -42,7 +42,7 @@ export const AppTutorial: React.FC<AppTutorialProps> = ({
     {
       id: 'language-switcher',
       title: 'Multi-Language Support',
-      description: 'Switch between different languages. The app supports Danish, English, Spanish, Italian, and Lithuanian.',
+      description: 'Switch between different languages. The app supports English and Dutch (Netherlands).',
       target: '.language-switcher',
       position: 'bottom'
     },
@@ -108,7 +108,7 @@ export const AppTutorial: React.FC<AppTutorialProps> = ({
     {
       id: 'completion',
       title: 'Tutorial Complete!',
-      description: 'You\'ve learned about all the key features of BricksApp. Start exploring and managing your construction projects efficiently!'
+      description: 'You\'ve learned about all the key features of expatheros.nl. Start exploring and managing your construction projects efficiently!'
     }
   ];
 

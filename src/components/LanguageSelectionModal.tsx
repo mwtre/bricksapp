@@ -10,20 +10,17 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({ 
   const { setLanguage, setHasSelectedLanguage } = useLanguage();
 
   const languages: { code: Language; name: string; flag: string; nativeName: string }[] = [
-    { code: 'da', name: 'Danish', flag: '🇩🇰', nativeName: 'Dansk' },
     { code: 'en', name: 'English', flag: '🇬🇧', nativeName: 'English' },
-    { code: 'es', name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
-    { code: 'it', name: 'Italian', flag: '🇮🇹', nativeName: 'Italiano' },
-    { code: 'lt', name: 'Lithuanian', flag: '🇱🇹', nativeName: 'Lietuvių' },
+    { code: 'nl', name: 'Dutch', flag: '🇳🇱', nativeName: 'Nederlands' },
   ];
 
   const handleLanguageSelect = (languageCode: Language) => {
     setLanguage(languageCode);
     setHasSelectedLanguage(true);
     // Store the selection in localStorage
-    localStorage.setItem('bricksapp-language', languageCode);
+    localStorage.setItem('expatheros-language', languageCode);
     // Remove the modal from localStorage to prevent it from showing again
-    localStorage.setItem('bricksapp-language-selected', 'true');
+    localStorage.setItem('expatheros-language-selected', 'true');
   };
 
   if (!isOpen) return null;
@@ -37,7 +34,7 @@ export const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({ 
             <Globe className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome to BricksApp
+            Welcome to expatheros.nl
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Please select your preferred language to continue

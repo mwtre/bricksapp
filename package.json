@@ -1,9 +1,9 @@
 {
-  "name": "bricksapp",
+  "name": "expatheros",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://mwtre.github.io/bricksapp",
+  "homepage": "https://expatheros.nl",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

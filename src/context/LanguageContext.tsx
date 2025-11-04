@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type Language = 'da' | 'en' | 'it' | 'es' | 'lt';
+export type Language = 'en' | 'nl';
 export type Theme = 'light' | 'dark';
 
 interface LanguageContextType {
@@ -25,26 +25,26 @@ export const useLanguage = () => {
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('da');
+  const [language, setLanguage] = useState<Language>('en');
   const [theme, setTheme] = useState<Theme>('dark');
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
 
   useEffect(() => {
     // Check if user has already selected a language
-    const languageSelected = localStorage.getItem('bricksapp-language-selected');
+    const languageSelected = localStorage.getItem('expatheros-language-selected');
     if (languageSelected === 'true') {
       setHasSelectedLanguage(true);
     }
 
     // Check for stored language preference
-    const storedLanguage = localStorage.getItem('bricksapp-language') as Language;
-    if (storedLanguage && ['da', 'en', 'it', 'es', 'lt'].includes(storedLanguage)) {
+    const storedLanguage = localStorage.getItem('expatheros-language') as Language;
+    if (storedLanguage && ['en', 'nl'].includes(storedLanguage)) {
       setLanguage(storedLanguage);
     }
 
     // Check for stored theme preference
-    const storedTheme = localStorage.getItem('bricksapp_theme') as Theme;
+    const storedTheme = localStorage.getItem('expatheros_theme') as Theme;
     if (storedTheme && ['light', 'dark'].includes(storedTheme)) {
       setTheme(storedTheme);
     } else {
@@ -61,13 +61,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
     
     // Store language preference
-    localStorage.setItem('bricksapp-language', language);
+    localStorage.setItem('expatheros-language', language);
   }, [language]);
 
   useEffect(() => {
     // Apply theme to document
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('bricksapp_theme', theme);
+    localStorage.setItem('expatheros_theme', theme);
   }, [theme]);
 
   const t = (key: string, variables?: Record<string, string | number>): string => {

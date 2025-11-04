@@ -4,7 +4,7 @@ export const mockUsers: User[] = [
   {
     id: '1',
     name: 'Lars Nielsen',
-    email: 'lars@bricksapp.dk',
+    email: 'lars@expatheros.nl',
     role: 'bricklayer',
     phone: '+45 12 34 56 78',
     assignedProjects: ['1', '2']
@@ -12,14 +12,14 @@ export const mockUsers: User[] = [
   {
     id: '2',
     name: 'Mette Hansen',
-    email: 'mette@bricksapp.dk',
+    email: 'mette@expatheros.nl',
     role: 'project_manager',
     phone: '+45 87 65 43 21'
   },
   {
     id: '3',
     name: 'Thomas Andersen',
-    email: 'thomas@bricksapp.dk',
+    email: 'thomas@expatheros.nl',
     role: 'bricklayer',
     phone: '+45 23 45 67 89',
     assignedProjects: ['1', '3']
@@ -27,7 +27,7 @@ export const mockUsers: User[] = [
   {
     id: '4',
     name: 'Anne Petersen',
-    email: 'anne@bricksapp.dk',
+    email: 'anne@expatheros.nl',
     role: 'recruiter',
     phone: '+45 98 76 54 32'
   }
@@ -36,7 +36,7 @@ export const mockUsers: User[] = [
 // User Management
 const getStoredUsers = (): User[] => {
   try {
-    const stored = localStorage.getItem('bricksapp-users');
+    const stored = localStorage.getItem('expatheros-users');
     if (stored) {
       return JSON.parse(stored);
     }
@@ -50,7 +50,7 @@ const liveUsers: User[] = getStoredUsers();
 
 const saveUsersToStorage = (users: User[]) => {
   try {
-    localStorage.setItem('bricksapp-users', JSON.stringify(users));
+    localStorage.setItem('expatheros-users', JSON.stringify(users));
   } catch (error) {
     console.error('Error saving users to localStorage:', error);
   }
@@ -155,7 +155,7 @@ export const mockProjects: Project[] = [
 // Initialize projects from localStorage or use default mock data
 const getStoredProjects = (): Project[] => {
   try {
-    const stored = localStorage.getItem('bricksapp-projects');
+    const stored = localStorage.getItem('expatheros-projects');
     if (stored) {
       return JSON.parse(stored);
     }
@@ -171,7 +171,7 @@ const liveProjects: Project[] = getStoredProjects();
 // Function to save projects to localStorage
 const saveProjectsToStorage = (projects: Project[]) => {
   try {
-    localStorage.setItem('bricksapp-projects', JSON.stringify(projects));
+    localStorage.setItem('expatheros-projects', JSON.stringify(projects));
   } catch (error) {
     console.error('Error saving projects to localStorage:', error);
   }
@@ -238,7 +238,7 @@ export const mockMaterials: Material[] = [
 // Initialize applications from localStorage or use default mock data
 const getStoredApplications = (): Application[] => {
   try {
-    const stored = localStorage.getItem('bricksapp-applications');
+    const stored = localStorage.getItem('expatheros-applications');
     if (stored) {
       return JSON.parse(stored);
     }
@@ -276,7 +276,7 @@ export const mockApplications: Application[] = getStoredApplications();
 // Function to save applications to localStorage
 const saveApplicationsToStorage = (applications: Application[]) => {
   try {
-    localStorage.setItem('bricksapp-applications', JSON.stringify(applications));
+    localStorage.setItem('expatheros-applications', JSON.stringify(applications));
   } catch (error) {
     console.error('Error saving applications to localStorage:', error);
   }

@@ -1,7 +1,7 @@
 export default {
   // Common
-  'app.title': 'BricksApp',
-  'app.subtitle': 'Danish Construction Management Platform',
+  'app.title': 'expatheros.nl',
+  'app.subtitle': 'Construction Management Platform',
   'common.welcome': 'Welcome',
   'common.login': 'Login',
   'common.logout': 'Logout',
@@ -63,7 +63,7 @@ export default {
 
   // Login
   'login.title': 'Login',
-  'login.subtitle': 'Welcome to BricksApp',
+  'login.subtitle': 'Welcome to expatheros.nl',
   'login.emailPlaceholder': 'Enter your email',
   'login.passwordPlaceholder': 'Enter your password',
   'login.loginButton': 'Login',
@@ -266,7 +266,7 @@ export default {
   'recruitment.success': 'Application submitted successfully!',
   'recruitment.error': 'Error submitting application. Please try again.',
   'recruitment.hasQuestions': 'Have Questions?',
-  'recruitment.contactEmail': 'recruitment@bricksapp.dk',
+  'recruitment.contactEmail': 'recruitment@expatheros.nl',
   'recruitment.contactPhone': '+45 70 12 34 56',
 
   // Materials

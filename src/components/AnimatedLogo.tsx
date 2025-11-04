@@ -53,7 +53,7 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 120, className = '' 
           {/* Blade */}
           <path d="M 0 0 L 18 22 L 36 0 Z" />
           {/* Neck */}
-          <line x1="18" y1="0" x2="18" y2="-20" />
+          <line x1="18" y1="0" x2="1cd brick8" y2="-20" />
           {/* Handle */}
           <g transform="rotate(80 18 -20)">
             <rect x="3" y="-26" width="20" height="13" rx="6.5" />

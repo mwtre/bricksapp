@@ -1,10 +1,10 @@
-# BricksApp 🏗️
+# expatheros.nl 🏗️
 
-A modern construction management platform built with React, TypeScript, and Tailwind CSS. BricksApp helps construction teams manage projects, coordinate bricklayers, and streamline communication.
+A modern construction management platform built with React, TypeScript, and Tailwind CSS. expatheros.nl helps construction teams manage projects, coordinate bricklayers, and streamline communication.
 
 ## Features
 
-- **Multi-language Support** - Danish, English, Spanish, Italian, Lithuanian
+- **Multi-language Support** - English, Dutch (Netherlands)
 - **Dark/Light Theme** - Toggle between themes
 - **Role-based Dashboards** - Different views for Bricklayers, Project Managers, and Recruiters
 - **Video Tutorials** - Construction phase tutorials with video content
@@ -30,8 +30,8 @@ A modern construction management platform built with React, TypeScript, and Tail
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/bricksapp.git
-cd bricksapp
+git clone https://github.com/yourusername/expatheros.git
+cd expatheros
 ```
 
 2. Install dependencies:
@@ -56,9 +56,9 @@ npm run build
 
 For testing purposes, you can use these demo accounts:
 
-- **Bricklayer**: lars@bricksapp.dk / password123
-- **Project Manager**: mette@bricksapp.dk / password123  
-- **Recruiter**: anne@bricksapp.dk / password123
+- **Bricklayer**: lars@expatheros.nl / password123
+- **Project Manager**: mette@expatheros.nl / password123  
+- **Recruiter**: anne@expatheros.nl / password123
 
 ## Project Structure
 
@@ -105,6 +105,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For support, email support@bricksapp.dk or create an issue in this repository.
+For support, email support@expatheros.nl or create an issue in this repository.
 
 <!-- Updated for Supabase integration -->

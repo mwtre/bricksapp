@@ -11,6 +11,7 @@ import { TeamPage } from './components/pages/TeamPage';
 import { ApplicationsPage } from './components/pages/ApplicationsPage';
 import { RecruitmentForm } from './components/RecruitmentForm';
 import { LanguageSelectionModal } from './components/LanguageSelectionModal';
+import { Landing } from './components/LANDING/Landing';
 
 function AppContent() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ function AppContent() {
   const hasPlayedSound = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasSeenLanding, setHasSeenLanding] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
 
   console.log('AppContent: Rendering with user:', user, 'hasSelectedLanguage:', hasSelectedLanguage);
 
@@ -95,6 +98,17 @@ function AppContent() {
     );
   }
 
+  // Show landing page if showLanding is true
+  if (showLanding) {
+    console.log('AppContent: Showing landing page');
+    const handleLandingContinue = () => {
+      setHasSeenLanding(true);
+      setShowLanding(false);
+    };
+    
+    return <Landing onContinue={handleLandingContinue} />;
+  }
+
   // Show language selection modal if language hasn't been selected
   if (!hasSelectedLanguage) {
     console.log('AppContent: Showing language selection modal');
@@ -116,7 +130,7 @@ function AppContent() {
 
   if (!user) {
     console.log('AppContent: Showing login page');
-    return <Login />;
+    return <Login onBackToLanding={() => setShowLanding(true)} />;
   }
 
   console.log('AppContent: Rendering dashboard for user:', user.role);

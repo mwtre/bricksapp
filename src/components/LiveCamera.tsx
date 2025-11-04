@@ -141,7 +141,7 @@ export const LiveCamera: React.FC<LiveCameraProps> = ({
             <span>1080P</span>
           </div>
           <div className="flex items-center space-x-3">
-            <span>BRICKSAPP SECURITY</span>
+            <span>EXPATHEROS SECURITY</span>
             <span>•</span>
             <span>CONSTRUCTION SITE {projectId}</span>
           </div>

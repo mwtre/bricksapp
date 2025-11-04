@@ -24,6 +24,7 @@ export const TABLES = {
   USERS: 'users',
   PROJECTS: 'projects',
   APPLICATIONS: 'applications',
+  WORKERS: 'workers',
   MATERIALS: 'materials',
   PROJECT_MATERIALS: 'project_materials',
   PROJECT_ASSIGNMENTS: 'project_assignments',
