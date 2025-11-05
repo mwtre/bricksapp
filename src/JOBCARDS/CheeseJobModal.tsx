@@ -27,7 +27,7 @@ export default function CheeseJobModal({ onClose }: CheeseJobModalProps) {
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
                 <div className="text-center mb-4">
-                  <p className="text-5xl md:text-6xl font-bold mb-2">€4,500</p>
+                  <p className="text-5xl md:text-6xl font-bold mb-2">€3,200</p>
                   <p className="text-lg text-amber-100/90">Average monthly salary</p>
                 </div>
                 <p className="text-xl text-amber-100 mb-1 text-center">Gross per month</p>

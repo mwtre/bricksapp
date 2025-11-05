@@ -39,7 +39,7 @@ export default function ForkiftJobCard() {
                 <div className="flex items-center gap-3">
                   <Euro className="w-7 h-7 text-blue-600 flex-shrink-0" />
                   <div>
-                    <span className="text-2xl font-bold text-gray-900">€3,700</span>
+                    <span className="text-2xl font-bold text-gray-900">€2,800</span>
                     <span className="text-sm text-gray-600 ml-1">/month</span>
                   </div>
                 </div>
