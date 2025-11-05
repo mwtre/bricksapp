@@ -26,15 +26,9 @@ export default function CEDriverJobModal({ onClose }: CEDriverJobModalProps) {
             <div className="relative bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white shadow-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
-                <div className="grid grid-cols-2 gap-6 mb-4">
-                  <div className="text-center">
-                    <p className="text-sm text-green-100/90 mb-2">Entry Level</p>
-                    <p className="text-3xl md:text-4xl font-bold">€3,500–€3,800</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-green-100/90 mb-2">Senior Level</p>
-                    <p className="text-3xl md:text-4xl font-bold">€4,800–€5,200</p>
-                  </div>
+                <div className="text-center mb-4">
+                  <p className="text-5xl md:text-6xl font-bold mb-2">€4,300</p>
+                  <p className="text-lg text-green-100/90">Average monthly salary</p>
                 </div>
                 <p className="text-xl text-green-100 mb-1 text-center">Gross per month</p>
                 <p className="text-sm text-green-100/90 text-center">50 hours/week · CE License · Accommodation arranged</p>

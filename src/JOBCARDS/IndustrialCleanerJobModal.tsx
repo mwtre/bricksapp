@@ -26,15 +26,9 @@ export default function IndustrialCleanerJobModal({ onClose }: IndustrialCleaner
             <div className="relative bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl p-8 text-white shadow-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
-                <div className="grid grid-cols-2 gap-6 mb-4">
-                  <div className="text-center">
-                    <p className="text-sm text-teal-100/90 mb-2">Entry Level</p>
-                    <p className="text-3xl md:text-4xl font-bold">€2,200–€2,500</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-teal-100/90 mb-2">Senior Level</p>
-                    <p className="text-3xl md:text-4xl font-bold">€3,600–€4,000</p>
-                  </div>
+                <div className="text-center mb-4">
+                  <p className="text-5xl md:text-6xl font-bold mb-2">€3,100</p>
+                  <p className="text-lg text-teal-100/90">Average monthly salary</p>
                 </div>
                 <p className="text-xl text-teal-100 mb-1 text-center">Gross per month</p>
                 <p className="text-sm text-teal-100/90 text-center">1–40 hours/week · Permanent · Lower School</p>

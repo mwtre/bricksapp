@@ -37,10 +37,10 @@ export default function IndustrialCleanerJobCard() {
             <div className="mt-auto pt-4 border-t-2 border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Euro className="w-6 h-6 text-teal-600 flex-shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold text-gray-900">Entry: €2,200–€2,500</span>
-                    <span className="text-lg font-semibold text-gray-900">Senior: €3,600–€4,000</span>
+                  <Euro className="w-7 h-7 text-teal-600 flex-shrink-0" />
+                  <div>
+                    <span className="text-2xl font-bold text-gray-900">€3,100</span>
+                    <span className="text-sm text-gray-600 ml-1">/month</span>
                   </div>
                 </div>
                 <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" />

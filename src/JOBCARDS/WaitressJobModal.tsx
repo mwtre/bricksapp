@@ -26,15 +26,9 @@ export default function WaitressJobModal({ onClose }: WaitressJobModalProps) {
             <div className="relative bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-8 text-white shadow-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
-                <div className="grid grid-cols-2 gap-6 mb-4">
-                  <div className="text-center">
-                    <p className="text-sm text-purple-100/90 mb-2">Entry Level</p>
-                    <p className="text-3xl md:text-4xl font-bold">€2,000–€2,200</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-purple-100/90 mb-2">Senior Level</p>
-                    <p className="text-3xl md:text-4xl font-bold">€2,800–€3,000</p>
-                  </div>
+                <div className="text-center mb-4">
+                  <p className="text-5xl md:text-6xl font-bold mb-2">€2,500</p>
+                  <p className="text-lg text-purple-100/90">Average monthly salary</p>
                 </div>
                 <p className="text-xl text-purple-100 mb-1 text-center">Net monthly salary</p>
                 <p className="text-sm text-purple-100/90 text-center">4–40 hours/week · Part-time or Full-time · MBO</p>
