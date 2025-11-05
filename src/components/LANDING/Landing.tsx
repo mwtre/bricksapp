@@ -11,6 +11,7 @@ import IndustrialCleanerJobCard from '../../JOBCARDS/IndustrialCleanerJobCard';
 import SupermarketEmployeeJobCard from '../../JOBCARDS/SupermarketEmployeeJobCard';
 import LineOperatorJobCard from '../../JOBCARDS/LineOperatorJobCard';
 import ElectricianJobCard from '../../JOBCARDS/ElectricianJobCard';
+import BikeMechanicJobCard from '../../JOBCARDS/BikeMechanicJobCard';
 
 interface LandingProps {
   onContinue: () => void;
@@ -26,7 +27,7 @@ export const Landing: React.FC<LandingProps> = ({ onContinue, onApply }) => {
   const [videoError, setVideoError] = useState(false);
   const [videoFadingOut, setVideoFadingOut] = useState(false);
   const [videoZooming, setVideoZooming] = useState(false);
-  const [cardLoaded, setCardLoaded] = useState([false, false, false, false, false, false, false, false, false, false, false]);
+  const [cardLoaded, setCardLoaded] = useState([false, false, false, false, false, false, false, false, false, false, false, false]);
   const [activeTab, setActiveTab] = useState<TabType>('intro');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerVideoRef = useRef<HTMLVideoElement>(null);
@@ -539,7 +540,8 @@ export const Landing: React.FC<LandingProps> = ({ onContinue, onApply }) => {
             <IndustrialCleanerJobCard key="cleaner" />,
             <SupermarketEmployeeJobCard key="supermarket" />,
             <LineOperatorJobCard key="line" />,
-            <ElectricianJobCard key="electrician" />
+            <ElectricianJobCard key="electrician" />,
+            <BikeMechanicJobCard key="bikemechanic" />
           ].map((card, index) => (
             <div
               key={index}
