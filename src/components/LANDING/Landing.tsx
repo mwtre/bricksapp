@@ -152,17 +152,18 @@ export const Landing: React.FC<LandingProps> = ({ onContinue, onApply }) => {
   };
 
   const triggerCardAnimations = () => {
-    setTimeout(() => setCardLoaded([true, false, false, false, false, false, false, false, false, false, false]), 100);
-    setTimeout(() => setCardLoaded([true, true, false, false, false, false, false, false, false, false, false]), 250);
-    setTimeout(() => setCardLoaded([true, true, true, false, false, false, false, false, false, false, false]), 400);
-    setTimeout(() => setCardLoaded([true, true, true, true, false, false, false, false, false, false, false]), 550);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, false, false, false, false, false, false]), 700);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, true, false, false, false, false, false]), 850);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, false, false, false, false]), 1000);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, false, false, false]), 1150);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, false, false]), 1300);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, true, false]), 1450);
-    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, true, true]), 1600);
+    setTimeout(() => setCardLoaded([true, false, false, false, false, false, false, false, false, false, false, false]), 100);
+    setTimeout(() => setCardLoaded([true, true, false, false, false, false, false, false, false, false, false, false]), 250);
+    setTimeout(() => setCardLoaded([true, true, true, false, false, false, false, false, false, false, false, false]), 400);
+    setTimeout(() => setCardLoaded([true, true, true, true, false, false, false, false, false, false, false, false]), 550);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, false, false, false, false, false, false, false]), 700);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, false, false, false, false, false, false]), 850);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, false, false, false, false, false]), 1000);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, false, false, false, false]), 1150);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, false, false, false]), 1300);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, true, false, false]), 1450);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, true, true, false]), 1600);
+    setTimeout(() => setCardLoaded([true, true, true, true, true, true, true, true, true, true, true, true]), 1750);
   };
 
   useEffect(() => {
