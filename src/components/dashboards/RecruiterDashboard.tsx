@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle, Check, X, User, Trash2, Settings, Plus, Eye, Edit, Search, Filter } from 'lucide-react';
+import { FileText, Users, Clock, CheckCircle, XCircle, AlertTriangle, Check, X, User, Trash2, Settings, Plus, Eye, Edit, Search, Filter, Briefcase, Send, UserCheck, Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { applicationService, workerService } from '../../services/database';
-import { Application } from '../../types';
+import { applicationService, workerService, companyRequestService, jobOfferSubmissionService, emailService } from '../../services/database';
+import { Application, CompanyCandidateRequest, JobOfferSubmission } from '../../types';
 import RecruitmentPortal from '../RecruitmentPortal';
 
 // Import vetrina components for worker management
@@ -51,9 +51,17 @@ interface Worker {
 export const RecruiterDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<'pending' | 'applications' | 'confirmations'>('pending');
   const [applications, setApplications] = useState<Application[]>([]);
+  const [companyRequests, setCompanyRequests] = useState<CompanyCandidateRequest[]>([]);
+  const [jobOffers, setJobOffers] = useState<JobOfferSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<CompanyCandidateRequest | null>(null);
+  const [selectedJobOffer, setSelectedJobOffer] = useState<JobOfferSubmission | null>(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showJobOfferModal, setShowJobOfferModal] = useState(false);
+  const [recruiterNotes, setRecruiterNotes] = useState('');
   
   // Recruitment Portal Management States
   const [showRecruitmentPortal, setShowRecruitmentPortal] = useState(false);
@@ -82,17 +90,23 @@ export const RecruiterDashboard: React.FC = () => {
       setIsLoading(true);
       setWorkersLoading(true);
       
-      const [applicationsData, workersData] = await Promise.all([
+      const [applicationsData, workersData, requestsData, jobOffersData] = await Promise.all([
         applicationService.getApplications(),
-        workerService.getWorkers()
+        workerService.getWorkers(),
+        companyRequestService.getRequests(),
+        jobOfferSubmissionService.getSubmissions()
       ]);
       
       console.log('Loaded applications from Supabase for recruiter dashboard:', applicationsData);
       console.log('Loaded workers from Supabase for recruiter dashboard:', workersData);
+      console.log('Loaded company requests:', requestsData);
+      console.log('Loaded job offers:', jobOffersData);
       
       setApplications(applicationsData);
       setWorkers(workersData);
       setFilteredWorkers(workersData);
+      setCompanyRequests(requestsData);
+      setJobOffers(jobOffersData);
     } catch (error) {
       console.error('Error loading data for recruiter dashboard:', error);
     } finally {
@@ -116,9 +130,21 @@ export const RecruiterDashboard: React.FC = () => {
       setFilteredWorkers(updatedWorkers);
     });
     
+    const requestSubscription = companyRequestService.subscribeToRequests((updatedRequests) => {
+      console.log('Real-time request update received:', updatedRequests);
+      setCompanyRequests(updatedRequests);
+    });
+    
+    const jobOfferSubscription = jobOfferSubmissionService.subscribeToSubmissions((updatedJobOffers) => {
+      console.log('Real-time job offer update received:', updatedJobOffers);
+      setJobOffers(updatedJobOffers);
+    });
+    
     return () => {
       applicationSubscription.unsubscribe();
       workerSubscription.unsubscribe();
+      requestSubscription.unsubscribe();
+      jobOfferSubscription.unsubscribe();
     };
   }, []);
 
@@ -294,6 +320,67 @@ export const RecruiterDashboard: React.FC = () => {
     }
   };
 
+  // Handler functions for requests and job offers
+  const handleSendToCandidate = async (requestId: string) => {
+    try {
+      setUpdatingId(requestId);
+      await companyRequestService.updateRequestStatus(requestId, 'sent_to_candidate', recruiterNotes);
+      setRecruiterNotes('');
+      setShowRequestModal(false);
+      await loadData();
+    } catch (error) {
+      console.error('Error sending to candidate:', error);
+      alert('Error sending request to candidate');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleApproveJobOffer = async (jobOfferId: string) => {
+    try {
+      setUpdatingId(jobOfferId);
+      await jobOfferSubmissionService.updateSubmissionStatus(jobOfferId, 'approved', recruiterNotes);
+      setRecruiterNotes('');
+      setShowJobOfferModal(false);
+      await loadData();
+    } catch (error) {
+      console.error('Error approving job offer:', error);
+      alert('Error approving job offer');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleRejectJobOffer = async (jobOfferId: string) => {
+    try {
+      setUpdatingId(jobOfferId);
+      await jobOfferSubmissionService.updateSubmissionStatus(jobOfferId, 'rejected', recruiterNotes);
+      setRecruiterNotes('');
+      setShowJobOfferModal(false);
+      await loadData();
+    } catch (error) {
+      console.error('Error rejecting job offer:', error);
+      alert('Error rejecting job offer');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handlePublishJobOffer = async (jobOfferId: string) => {
+    try {
+      setUpdatingId(jobOfferId);
+      await jobOfferSubmissionService.updateSubmissionStatus(jobOfferId, 'published', recruiterNotes);
+      setRecruiterNotes('');
+      setShowJobOfferModal(false);
+      await loadData();
+    } catch (error) {
+      console.error('Error publishing job offer:', error);
+      alert('Error publishing job offer');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.location) count++;
@@ -305,18 +392,32 @@ export const RecruiterDashboard: React.FC = () => {
     return count;
   };
   
+  // Calculate stats based on active tab
+  const pendingRequests = companyRequests.filter(r => r.status === 'pending');
+  const pendingJobOffers = jobOffers.filter(j => j.status === 'pending');
+  const activeConfirmations = companyRequests.filter(r => r.status === 'sent_to_candidate');
+  
   const totalApplications = applications.length;
   const pendingApplications = applications.filter((app: Application) => app.status === 'pending').length;
   const reviewedApplications = applications.filter((app: Application) => app.status === 'reviewed').length;
   const approvedApplications = applications.filter((app: Application) => app.status === 'approved').length;
   const rejectedApplications = applications.filter((app: Application) => app.status === 'rejected').length;
 
-  const stats = [
-    { label: t('dashboard.pendingApplications'), value: pendingApplications, icon: Clock, color: 'text-orange-600 dark:text-orange-400' },
-    { label: t('dashboard.reviewedApplications'), value: reviewedApplications, icon: FileText, color: 'text-blue-600 dark:text-blue-400' },
-    { label: t('dashboard.approvedApplications'), value: approvedApplications, icon: CheckCircle, color: 'text-green-600 dark:text-green-400' },
-    { label: t('dashboard.rejectedApplications'), value: rejectedApplications, icon: XCircle, color: 'text-red-600 dark:text-red-400' }
-  ];
+  const stats = activeTab === 'pending' 
+    ? [
+        { label: 'Pending Requests', value: pendingRequests.length, icon: UserCheck, color: 'text-orange-600 dark:text-orange-400' },
+        { label: 'Pending Job Offers', value: pendingJobOffers.length, icon: Briefcase, color: 'text-blue-600 dark:text-blue-400' }
+      ]
+    : activeTab === 'confirmations'
+    ? [
+        { label: 'Awaiting Responses', value: activeConfirmations.length, icon: Mail, color: 'text-yellow-600 dark:text-yellow-400' }
+      ]
+    : [
+        { label: t('dashboard.pendingApplications'), value: pendingApplications, icon: Clock, color: 'text-orange-600 dark:text-orange-400' },
+        { label: t('dashboard.reviewedApplications'), value: reviewedApplications, icon: FileText, color: 'text-blue-600 dark:text-blue-400' },
+        { label: t('dashboard.approvedApplications'), value: approvedApplications, icon: CheckCircle, color: 'text-green-600 dark:text-green-400' },
+        { label: t('dashboard.rejectedApplications'), value: rejectedApplications, icon: XCircle, color: 'text-red-600 dark:text-red-400' }
+      ];
 
   const recentApplications = applications.slice(0, 5);
 
@@ -474,11 +575,73 @@ export const RecruiterDashboard: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           {t('dashboard.welcome')}, {user?.name || ''}!
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">{t('dashboard.recruiterSubtitle')}</p>
+        <p className="text-gray-600 dark:text-gray-400">Central control point for company requests, job offers, and applications</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex -mb-px">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'pending'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Pending Requests
+                {(pendingRequests.length + pendingJobOffers.length) > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400 rounded-full">
+                    {pendingRequests.length + pendingJobOffers.length}
+                  </span>
+                )}
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('applications')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'applications'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center">
+                <FileText className="h-4 w-4 mr-2" />
+                Applications
+                {pendingApplications > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400 rounded-full">
+                    {pendingApplications}
+                  </span>
+                )}
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('confirmations')}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'confirmations'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center">
+                <Mail className="h-4 w-4 mr-2" />
+                Active Confirmations
+                {activeConfirmations.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 rounded-full">
+                    {activeConfirmations.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          </nav>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={`grid gap-6 ${stats.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-4'}`}>
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -497,45 +660,156 @@ export const RecruiterDashboard: React.FC = () => {
         })}
       </div>
 
-      {/* Recruitment Portal Management Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recruitment Portal Management</h2>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {workers.length} active workers
-            </span>
+      {/* Tab Content */}
+      {activeTab === 'pending' && (
+        <div className="space-y-6">
+          {/* Pending Candidate Requests */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Candidate Requests</h2>
+            </div>
+            <div className="p-6">
+              {pendingRequests.length === 0 ? (
+                <div className="text-center py-8">
+                  <UserCheck className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No pending candidate requests</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingRequests.map((request) => {
+                    const worker = workers.find(w => w.id === request.workerId);
+                    return (
+                      <div key={request.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900 dark:text-white">{worker?.name || 'Unknown Worker'}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{worker?.email || 'N/A'}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{worker?.location || 'N/A'}</p>
+                            {request.companyNotes && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                <span className="font-medium">Company Notes:</span> {request.companyNotes}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setShowRequestModal(true);
+                            }}
+                            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+                          >
+                            <Send className="h-4 w-4 mr-1" />
+                            Send to Candidate
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Pending Job Offers */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Job Offer Submissions</h2>
+            </div>
+            <div className="p-6">
+              {pendingJobOffers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Briefcase className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No pending job offer submissions</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingJobOffers.map((jobOffer) => (
+                    <div key={jobOffer.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 dark:text-white">{jobOffer.title}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{jobOffer.category} • {jobOffer.location}</p>
+                          {jobOffer.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{jobOffer.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => {
+                              setSelectedJobOffer(jobOffer);
+                              setShowJobOfferModal(true);
+                            }}
+                            className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectJobOffer(jobOffer.id)}
+                            disabled={updatingId === jobOffer.id}
+                            className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center disabled:opacity-50"
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={() => setShowRecruitmentPortal(true)}
-            className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-            <span className="text-gray-700 dark:text-gray-300">View Portal</span>
-          </button>
-          <button
-            onClick={() => setShowWorkerManagement(true)}
-            className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Users className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-            <span className="text-gray-700 dark:text-gray-300">Manage Workers</span>
-          </button>
-          <button className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
-            <span className="text-gray-700 dark:text-gray-300">Portal Settings</span>
-          </button>
-        </div>
-      </div>
+      )}
 
-      {/* Recent Applications */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.recentApplications')}</h2>
+      {activeTab === 'confirmations' && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Awaiting Candidate Responses</h2>
+          </div>
+          <div className="p-6">
+            {activeConfirmations.length === 0 ? (
+              <div className="text-center py-8">
+                <Mail className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">No active confirmations awaiting responses</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {activeConfirmations.map((request) => {
+                  const worker = workers.find(w => w.id === request.workerId);
+                  return (
+                    <div key={request.id} className="border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-900/10">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 dark:text-white">{worker?.name || 'Unknown Worker'}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{worker?.email || 'N/A'}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Sent: {new Date(request.sentToCandidateAt || '').toLocaleDateString()}</p>
+                          {request.recruiterNotes && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                              <span className="font-medium">Your Notes:</span> {request.recruiterNotes}
+                            </p>
+                          )}
+                        </div>
+                        <span className="px-3 py-1 text-sm bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 rounded-full">
+                          Awaiting Response
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="p-6">
+      )}
+
+      {activeTab === 'applications' && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.recentApplications')}</h2>
+          </div>
+          <div className="p-6">
           {recentApplications.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
@@ -645,27 +919,113 @@ export const RecruiterDashboard: React.FC = () => {
               ))}
             </div>
           )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('dashboard.quickActions')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-            <span className="text-gray-700 dark:text-gray-300">{t('dashboard.reviewApplications')}</span>
-          </button>
-          <button className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Users className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-            <span className="text-gray-700 dark:text-gray-300">{t('dashboard.scheduleInterviews')}</span>
-          </button>
-          <button className="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <AlertTriangle className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
-            <span className="text-gray-700 dark:text-gray-300">{t('dashboard.sendNotifications')}</span>
-          </button>
+      {/* Modals */}
+      {/* Send to Candidate Modal */}
+      {showRequestModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Send Request to Candidate</h3>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Worker: {workers.find(w => w.id === selectedRequest.workerId)?.name || 'Unknown'}
+              </p>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Add Notes (optional)
+              </label>
+              <textarea
+                value={recruiterNotes}
+                onChange={(e) => setRecruiterNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                rows={4}
+                placeholder="Add any notes for the candidate..."
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => {
+                  setShowRequestModal(false);
+                  setSelectedRequest(null);
+                  setRecruiterNotes('');
+                }}
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSendToCandidate(selectedRequest.id)}
+                disabled={updatingId === selectedRequest.id}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                {updatingId === selectedRequest.id ? 'Sending...' : 'Send to Candidate'}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Job Offer Approval Modal */}
+      {showJobOfferModal && selectedJobOffer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Job Offer: {selectedJobOffer.title}</h3>
+            <div className="mb-4 space-y-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Category:</span> {selectedJobOffer.category}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Location:</span> {selectedJobOffer.location}
+              </p>
+              {selectedJobOffer.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-medium">Description:</span> {selectedJobOffer.description}
+                </p>
+              )}
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Add Notes (optional)
+              </label>
+              <textarea
+                value={recruiterNotes}
+                onChange={(e) => setRecruiterNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                rows={4}
+                placeholder="Add approval notes..."
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => {
+                  setShowJobOfferModal(false);
+                  setSelectedJobOffer(null);
+                  setRecruiterNotes('');
+                }}
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRejectJobOffer(selectedJobOffer.id)}
+                disabled={updatingId === selectedJobOffer.id}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => handleApproveJobOffer(selectedJobOffer.id)}
+                disabled={updatingId === selectedJobOffer.id}
+                className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                {updatingId === selectedJobOffer.id ? 'Processing...' : 'Approve'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

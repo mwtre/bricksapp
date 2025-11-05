@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock, HelpCircle, RotateCcw, Users, Star, MapPin } from 'lucide-react';
+import { Building, Mail, Lock, AlertCircle, UserPlus, Info, ArrowRight, Hammer, Ruler, Shield, Clock, HelpCircle, RotateCcw, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -9,6 +9,7 @@ import { ConstructionTutorials } from './ConstructionTutorials';
 import { VideoBackground } from './VideoBackground';
 import { AppTutorial } from './AppTutorial';
 import RecruitmentPortal from './RecruitmentPortal';
+import { JobOffers } from './JobOffers';
 
 interface LoginProps {
   onBackToLanding?: () => void;
@@ -347,7 +348,7 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
                 }`}
               >
                 <Users className="h-4 w-4 mr-1 inline" />
-                Access Heroes Database
+                Job Offers
               </button>
             </div>
           </div>
@@ -405,54 +406,11 @@ export const Login: React.FC<LoginProps> = ({ onBackToLanding }) => {
               </button>
             </form>
           ) : loginType === 'database' ? (
-            /* Access Heroes Database */
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
-                  <Users className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Access Heroes Database</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Browse available construction professionals and connect with skilled workers
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Available Workers</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    View profiles of skilled bricklayers, tilers, and construction professionals
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                    <span>4.7+ average rating</span>
-                    <span className="mx-2">•</span>
-                    <span>Verified professionals</span>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Advanced Filtering</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    Filter by skills, location, availability, and experience level
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <MapPin className="h-4 w-4 mr-1 text-green-500" />
-                    <span>Multiple locations</span>
-                    <span className="mx-2">•</span>
-                    <span>Real-time availability</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowRecruitmentPortal(true)}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium flex items-center justify-center"
-              >
-                <Users className="h-5 w-5 mr-2" />
-                Open Heroes Database
-              </button>
-            </div>
+            /* Job Offers */
+            <JobOffers onApply={(positionId) => {
+              console.log('Applying for position:', positionId);
+              alert(`Application submitted for position: ${positionId}`);
+            }} />
           ) : (
             /* Heroes Login */
             <div className="space-y-6">

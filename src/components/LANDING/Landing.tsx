@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Users, TrendingUp, Globe, Heart, CheckCircle, MapPin, Music, ArrowRight, Euro, Briefcase, Award, Target, Zap } from 'lucide-react';
 import CheeseJobCard from '../../JOBCARDS/CheeseJobCard';
 import CourierJobCard from '../../JOBCARDS/CourierJobCard';
 import ForkiftJobCard from '../../JOBCARDS/ForkiftJobCard';
@@ -13,11 +14,12 @@ import ElectricianJobCard from '../../JOBCARDS/ElectricianJobCard';
 
 interface LandingProps {
   onContinue: () => void;
+  onApply?: () => void;
 }
 
-type TabType = 'intro' | 'jobs' | 'how-it-works' | 'stories';
+type TabType = 'intro' | 'core' | 'jobs' | 'how-it-works' | 'stories';
 
-export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
+export const Landing: React.FC<LandingProps> = ({ onContinue, onApply }) => {
   const [showVideo, setShowVideo] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
@@ -192,10 +194,342 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
     }
   }, [activeTab]);
 
+  // Render Core Section
+  const renderCoreSection = () => (
+    <div className="min-h-screen bg-white text-black relative">
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}BG/bg1.png)`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px',
+          backgroundPosition: 'top left'
+        }}
+      ></div>
+      <div className="relative z-10">
+      {/* Hero Banner */}
+      <div className="relative py-12 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-black">
+              Build your future in The Netherlands
+            </h1>
+            <h2 className="text-2xl md:text-4xl font-semibold mb-8 text-gray-800">
+              Become an Expat Hero
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <p className="text-lg md:text-xl text-gray-700 max-w-2xl">
+                For candidates: Launch your career abroad with support, zero cost.
+              </p>
+              <p className="text-lg md:text-xl text-gray-700 max-w-2xl">
+                For companies: Access talented European workforce, pay only for results.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={onApply}
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 transform flex items-center justify-center"
+              >
+                <Users className="mr-2 h-5 w-5" />
+                Join as a Hero
+              </button>
+              <button
+                onClick={onContinue}
+                className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold text-lg rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 transform flex items-center justify-center"
+              >
+                <Briefcase className="mr-2 h-5 w-5" />
+                Hire European Talent
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Why this project exists */}
+      <div className="py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-black">Why this project exists</h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              🇳🇱 The Netherlands needs talent — and you can be it.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <TrendingUp className="h-10 w-10 text-blue-400 mb-3" />
+              <h3 className="text-2xl font-bold text-blue-400 mb-2">+250,000</h3>
+              <p className="text-gray-300">Workers needed by 2028</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Zap className="h-10 w-10 text-green-400 mb-3" />
+              <h3 className="text-2xl font-bold text-green-400 mb-2">4-6%</h3>
+              <p className="text-gray-300">Annual growth in logistics, manufacturing & agri-food</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Globe className="h-10 w-10 text-yellow-400 mb-3" />
+              <h3 className="text-2xl font-bold text-yellow-400 mb-2">12M+</h3>
+              <p className="text-gray-300">Job-seekers ready to relocate across Europe</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Euro className="h-10 w-10 text-purple-400 mb-3" />
+              <h3 className="text-2xl font-bold text-purple-400 mb-2">+€40B</h3>
+              <p className="text-gray-300">Annual value in EU labour markets</p>
+            </div>
+          </div>
+          <div className="mt-8 text-center">
+            <p className="text-lg text-gray-700 max-w-4xl mx-auto">
+              Expat Heroes NL bridges that gap: mobilising talent, fuelling growth, strengthening diversity.
+              <br />
+              <span className="text-blue-600 font-semibold">We believe migration isn't just movement — it's opportunity, innovation, community.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Why become an Expat Hero */}
+      <div className="py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-black">Why become an Expat Hero?</h2>
+            <p className="text-xl text-gray-700">🇳🇱 Why move to The Netherlands?</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Euro className="h-10 w-10 text-yellow-300 mb-3" />
+              <h3 className="text-xl font-bold mb-2">€45,000–€55,000/year</h3>
+              <p className="text-gray-300">Average salary in key sectors (entry/mid-level) with overtime</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Globe className="h-10 w-10 text-blue-300 mb-3" />
+              <h3 className="text-xl font-bold mb-2">88%</h3>
+              <p className="text-gray-300">Companies operate in English-friendly environments</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Award className="h-10 w-10 text-yellow-300 mb-3" />
+              <h3 className="text-xl font-bold mb-2">Top 5</h3>
+              <p className="text-gray-300">European countries for quality of life and worker satisfaction</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Heart className="h-10 w-10 text-pink-300 mb-3" />
+              <h3 className="text-xl font-bold mb-2">32-hour week</h3>
+              <p className="text-gray-300">Flexible work culture, generous holiday & parental leave</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <p className="text-xl text-blue-600 font-semibold">
+              You're not just changing location — you're upgrading your life.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-black">How it works</h2>
+          
+          {/* For Candidates */}
+          <div className="mb-12">
+            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-center text-black">For candidates</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-black/90 rounded-lg p-6 text-white">
+                <div className="flex items-start mb-4">
+                  <CheckCircle className="h-6 w-6 text-green-400 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Completely free for you, forever</h4>
+                    <p className="text-gray-300">Apply → relocate → integrate → grow.</p>
+                    <p className="text-gray-400 text-sm mt-2">Over 3,000 successful relocations facilitated so far.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-black/90 rounded-lg p-6 text-white">
+                <div className="flex items-start mb-4">
+                  <CheckCircle className="h-6 w-6 text-green-400 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Regular support</h4>
+                    <p className="text-gray-300">Housing, admin, language and social onboarding.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-black/90 rounded-lg p-6 text-white">
+                <div className="flex items-start mb-4">
+                  <CheckCircle className="h-6 w-6 text-green-400 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">We earn only when you start</h4>
+                    <p className="text-gray-300">No placement fee for you. Zero cost until results.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* For Companies */}
+          <div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-center text-black">For companies</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-black/90 rounded-lg p-6 text-white">
+                <div className="flex items-start mb-4">
+                  <CheckCircle className="h-6 w-6 text-blue-400 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Hire in 4-6 weeks</h4>
+                    <p className="text-gray-300">Access to a vetted pool of over 5,000 candidates across Europe.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-black/90 rounded-lg p-6 text-white">
+                <div className="flex items-start mb-4">
+                  <CheckCircle className="h-6 w-6 text-blue-400 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Pay only after results</h4>
+                    <p className="text-gray-300">Legal compliance, integration support & culture training included.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-black/90 rounded-lg p-6 text-white">
+                <div className="flex items-start mb-4">
+                  <CheckCircle className="h-6 w-6 text-blue-400 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Zero risk upfront</h4>
+                    <p className="text-gray-300">Only results.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Community & Culture */}
+      <div className="py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-black">Community & Culture</h2>
+          
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <div className="flex items-center mb-4">
+                <Music className="h-10 w-10 text-yellow-300 mr-3" />
+                <h3 className="text-2xl font-bold">Weekly Job Discovery Party in Amsterdam</h3>
+              </div>
+              <p className="text-gray-300 mb-4">
+                Every Friday we host our vibrant Hero Meetup — 50+ expats, employers, DJs, Dutch culture, drinks & jobs.
+              </p>
+              <p className="text-blue-300 font-semibold">Network. Discover. Belong.</p>
+            </div>
+            
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <div className="flex items-center mb-4">
+                <MapPin className="h-10 w-10 text-pink-300 mr-3" />
+                <h3 className="text-2xl font-bold">Street Recruitment in Amsterdam</h3>
+              </div>
+              <p className="text-gray-300 mb-4">
+                Look for us every week at:
+              </p>
+              <ul className="text-gray-300 space-y-2 mb-4">
+                <li className="flex items-center">
+                  <ArrowRight className="h-4 w-4 mr-2 text-blue-400" />
+                  Dam Square
+                </li>
+                <li className="flex items-center">
+                  <ArrowRight className="h-4 w-4 mr-2 text-blue-400" />
+                  Centraal Station
+                </li>
+                <li className="flex items-center">
+                  <ArrowRight className="h-4 w-4 mr-2 text-blue-400" />
+                  Leidseplein
+                </li>
+              </ul>
+              <p className="text-gray-300">
+                Talking to 100+ candidates weekly, sharing opportunities & Dutch culture.
+              </p>
+              <p className="text-pink-300 font-semibold mt-2">We're bold. We're human. We're about real connections.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* What makes Expat Heroes special */}
+      <div className="py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-black">What makes Expat Heroes special</h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Target className="h-10 w-10 text-green-400 mb-3" />
+              <h3 className="text-xl font-bold mb-2">90%+ retention rate</h3>
+              <p className="text-gray-300">At 12 months among our placed candidates</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Users className="h-10 w-10 text-blue-400 mb-3" />
+              <h3 className="text-xl font-bold mb-2">Multilingual team</h3>
+              <p className="text-gray-300">Recruiters + relocation advisors operating locally</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Heart className="h-10 w-10 text-pink-400 mb-3" />
+              <h3 className="text-xl font-bold mb-2">Community-first</h3>
+              <p className="text-gray-300">Life support not just job placement</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Euro className="h-10 w-10 text-yellow-400 mb-3" />
+              <h3 className="text-xl font-bold mb-2">Transparent payment</h3>
+              <p className="text-gray-300">You're in control</p>
+            </div>
+            <div className="bg-black/90 rounded-lg p-6 text-white">
+              <Globe className="h-10 w-10 text-purple-400 mb-3" />
+              <h3 className="text-xl font-bold mb-2">Built by internationals</h3>
+              <p className="text-gray-300">For internationals</p>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-2xl md:text-3xl font-bold text-blue-600 mb-4">
+              You won't just find a job — you'll build a life here.
+            </p>
+            <p className="text-xl text-gray-700">
+              Because you belong. Because you matter.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className="py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-black">Ready to become a Hero?</h2>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={onApply}
+              className="px-8 py-4 bg-black text-white font-bold text-lg rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 transform flex items-center justify-center"
+            >
+              <Zap className="mr-2 h-5 w-5" />
+              Join as an Expat Hero
+            </button>
+            <button
+              onClick={onContinue}
+              className="px-8 py-4 bg-black text-white font-bold text-lg rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 transform flex items-center justify-center"
+            >
+              <CheckCircle className="mr-2 h-5 w-5" />
+              Hire European Talent Now
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  );
+
   // Render Intro Section
   const renderIntroSection = () => (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 relative">
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}BG/bg1.png)`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px',
+          backgroundPosition: 'top left'
+        }}
+      ></div>
+      <div className="relative z-10 w-full max-w-4xl">
         <video
           ref={introVideoRef}
           src={`${import.meta.env.BASE_URL}expatvideo.mp4`}
@@ -220,9 +554,19 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
 
   // Render Jobs Section
   const renderJobsSection = () => (
-    <div className="p-8 bg-black">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+    <div className="p-8 bg-white relative">
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}BG/bg1.png)`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px',
+          backgroundPosition: 'top left'
+        }}
+      ></div>
+      <div className="relative z-10">
+        <div className="max-w-7xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-12">
           Explore Available Job Opportunities
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8 items-stretch">
@@ -253,12 +597,23 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
           ))}
         </div>
       </div>
+      </div>
     </div>
   );
 
   // Render How It Works Section
   const renderHowItWorksSection = () => (
-    <div className="relative min-h-screen bg-black">
+    <div className="relative min-h-screen bg-white">
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}BG/bg2.png)`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px',
+          backgroundPosition: 'top left'
+        }}
+      ></div>
+      <div className="relative z-10">
       {/* Image Section - Show on mobile, background on desktop */}
       <div className="md:hidden w-full h-64 bg-cover bg-center bg-no-repeat"
         style={{
@@ -277,97 +632,139 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
         <div className="hidden md:block flex-1 min-h-[60vh]"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8 pt-2 md:pt-0">
           <div className="text-center mb-4 md:mb-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-2xl">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-2">
               🦸‍♀️ How It Works – Become an Expat Hero in 6 Steps!
             </h2>
-            <p className="text-lg md:text-xl text-white font-semibold mb-4 drop-shadow-lg">
+            <p className="text-lg md:text-xl text-gray-700 font-semibold mb-4">
               ✨ Simple. Fun. Real.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Step 1 */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-blue-500 shadow-xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 transform">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl hover:scale-105 transition-all duration-300 transform overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={`${import.meta.env.BASE_URL}step/step1.png`}
+                  alt="Step 1"
+                  className="w-full h-48 object-cover"
+                />
+              </div>
               <div className="flex items-center justify-start mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   1
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Activate Your English</h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <h3 className="text-lg font-bold mb-2">Activate Your English</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
                 Join our fun Activate English online class and get ready to communicate like a pro.
               </p>
             </div>
 
             {/* Step 2 */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-blue-500 shadow-xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 transform">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl hover:scale-105 transition-all duration-300 transform overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={`${import.meta.env.BASE_URL}step/step2.png`}
+                  alt="Step 2"
+                  className="w-full h-48 object-cover"
+                />
+              </div>
               <div className="flex items-center justify-start mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   2
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Build Your Profile</h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <h3 className="text-lg font-bold mb-2">Build Your Profile</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
                 Share your experience, skills, and availability — we'll help you shine!
               </p>
             </div>
 
             {/* Step 3 */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-blue-500 shadow-xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 transform">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl hover:scale-105 transition-all duration-300 transform overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={`${import.meta.env.BASE_URL}step/step3.png`}
+                  alt="Step 3"
+                  className="w-full h-48 object-cover"
+                />
+              </div>
               <div className="flex items-center justify-start mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   3
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Get Your Hero Badge</h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <h3 className="text-lg font-bold mb-2">Get Your Hero Badge</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
                 Complete your profile and earn your "Hero in Trial" badge. Now companies can see and contact you!
               </p>
             </div>
 
             {/* Step 4 */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-blue-500 shadow-xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 transform">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl hover:scale-105 transition-all duration-300 transform overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={`${import.meta.env.BASE_URL}step/step4.png`}
+                  alt="Step 4"
+                  className="w-full h-48 object-cover"
+                />
+              </div>
               <div className="flex items-center justify-start mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   4
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Apply or Get Discovered</h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <h3 className="text-lg font-bold mb-2">Apply or Get Discovered</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
                 Apply for jobs yourself or wait to be selected by Dutch employers. Either way, opportunity finds you.
               </p>
             </div>
 
             {/* Step 5 */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-blue-500 shadow-xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 transform">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl hover:scale-105 transition-all duration-300 transform overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={`${import.meta.env.BASE_URL}step/step5.png`}
+                  alt="Step 5"
+                  className="w-full h-48 object-cover"
+                />
+              </div>
               <div className="flex items-center justify-start mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   5
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Move to the Netherlands</h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <h3 className="text-lg font-bold mb-2">Move to the Netherlands</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
                 We'll help you pack, travel, and settle in — housing, support, and a smooth start guaranteed.
               </p>
             </div>
 
             {/* Step 6 */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-blue-500 shadow-xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-300 transform">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl hover:scale-105 transition-all duration-300 transform overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={`${import.meta.env.BASE_URL}step/step6.png`}
+                  alt="Step 6"
+                  className="w-full h-48 object-cover"
+                />
+              </div>
               <div className="flex items-center justify-start mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   6
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Live the Hero Life</h3>
-              <p className="text-gray-700 leading-relaxed text-sm">
+              <h3 className="text-lg font-bold mb-2">Live the Hero Life</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
                 Work, grow, and earn €28K–€50K/year. Then become a Hero Coach and help others start their journey too!
               </p>
             </div>
           </div>
 
           <div className="text-center mb-8">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 border-2 border-blue-500 shadow-xl inline-block">
-              <p className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
+            <div className="bg-black/90 rounded-lg p-6 text-white shadow-xl inline-block">
+              <p className="text-xl md:text-2xl font-bold mb-4">
                 Start your journey today — become the next Expat Hero!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -378,7 +775,7 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
                   Explore Jobs
                 </button>
                 <button
-                  onClick={onContinue}
+      onClick={onContinue}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base md:text-lg px-8 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 transform"
                 >
                   Get Started Now
@@ -387,6 +784,7 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -437,13 +835,23 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
     ];
 
     return (
-      <div className="p-8 bg-black">
+      <div className="p-8 bg-white relative">
+        <div 
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `url(${import.meta.env.BASE_URL}BG/bg1.png)`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '300px',
+            backgroundPosition: 'top left'
+          }}
+        ></div>
+        <div className="relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
               🌟 Stories of Success
             </h2>
-            <p className="text-lg text-gray-300">
+            <p className="text-lg text-gray-700">
               Real stories from real heroes who changed their lives
             </p>
           </div>
@@ -463,11 +871,22 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
           </div>
         </div>
       </div>
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white relative">
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}BG/bg1.png)`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '300px',
+          backgroundPosition: 'top left'
+        }}
+      ></div>
+      <div className="relative z-10">
       {/* Initial Video */}
       {showVideo && (
         <div 
@@ -555,7 +974,7 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
       {showGrid && (
         <div className="min-h-screen animate-fadeIn">
           {/* Header */}
-          <header className="sticky top-0 z-40 bg-black border-b-2 border-gray-700 shadow-sm">
+          <header className="sticky top-0 z-40 bg-white border-b-2 border-gray-300 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-20">
                 {/* Logo on Left */}
@@ -578,17 +997,27 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
                     className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       activeTab === 'intro'
                         ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     INTRO
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('core')}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                      activeTab === 'core'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    CORE
                   </button>
                   <button
                     onClick={() => setActiveTab('how-it-works')}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       activeTab === 'how-it-works'
                         ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     HOW IT WORKS
@@ -598,7 +1027,7 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
                     className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       activeTab === 'jobs'
                         ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     JOBS
@@ -608,13 +1037,21 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
                     className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       activeTab === 'stories'
                         ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     STORY OF SUCCESS
                   </button>
+                  {onApply && (
+                    <button
+                      onClick={onApply}
+                      className="px-4 py-2 rounded-lg font-semibold transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+                    >
+                      APPLY
+                    </button>
+                  )}
                   <button
-                    onClick={onContinue}
+      onClick={onContinue}
                     className="px-4 py-2 rounded-lg font-semibold transition-all duration-200 bg-green-600 text-white hover:bg-green-700 shadow-md"
                   >
                     LOGIN
@@ -627,12 +1064,14 @@ export const Landing: React.FC<LandingProps> = ({ onContinue }) => {
           {/* Content Sections */}
           <div className="min-h-[calc(100vh-5rem)]">
             {activeTab === 'intro' && renderIntroSection()}
+            {activeTab === 'core' && renderCoreSection()}
             {activeTab === 'jobs' && renderJobsSection()}
             {activeTab === 'how-it-works' && renderHowItWorksSection()}
             {activeTab === 'stories' && renderStoriesSection()}
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

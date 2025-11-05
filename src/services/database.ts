@@ -710,4 +710,253 @@ export const workerService = {
       )
       .subscribe();
   }
+};
+
+// Company Candidate Request Service
+export const companyRequestService = {
+  // Create a request from company to recruiter
+  async createRequest(companyId: string, workerId: string, companyNotes?: string): Promise<any> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, creating mock request');
+      return { id: Math.random().toString(36).substr(2, 9), companyId, workerId, status: 'pending' };
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.COMPANY_CANDIDATE_REQUESTS)
+      .insert([{
+        company_id: companyId,
+        worker_id: workerId,
+        status: 'pending',
+        company_notes: companyNotes
+      }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return this.transformRequest(data);
+  },
+
+  // Get all requests
+  async getRequests(status?: string): Promise<any[]> {
+    if (!isSupabaseAvailable() || !supabase) {
+      return [];
+    }
+
+    let query = supabase.from(TABLES.COMPANY_CANDIDATE_REQUESTS).select('*');
+    
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    query = query.order('created_at', { ascending: false });
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    return (data || []).map(this.transformRequest);
+  },
+
+  // Update request status
+  async updateRequestStatus(requestId: string, status: string, notes?: string): Promise<any> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, mock update');
+      return { id: requestId, status };
+    }
+
+    const updateData: any = { status };
+    
+    if (status === 'sent_to_candidate') {
+      updateData.sent_to_candidate_at = new Date().toISOString();
+      updateData.recruiter_notes = notes;
+    } else if (status === 'candidate_confirmed' || status === 'candidate_rejected') {
+      updateData.candidate_responded_at = new Date().toISOString();
+      updateData.candidate_notes = notes;
+    } else if (status === 'completed') {
+      updateData.completed_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.COMPANY_CANDIDATE_REQUESTS)
+      .update(updateData)
+      .eq('id', requestId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return this.transformRequest(data);
+  },
+
+  // Transform snake_case to camelCase
+  transformRequest(data: any): any {
+    return {
+      id: data.id,
+      companyId: data.company_id,
+      workerId: data.worker_id,
+      status: data.status,
+      recruiterNotes: data.recruiter_notes,
+      candidateNotes: data.candidate_notes,
+      companyNotes: data.company_notes,
+      requestedAt: data.requested_at,
+      sentToCandidateAt: data.sent_to_candidate_at,
+      candidateRespondedAt: data.candidate_responded_at,
+      completedAt: data.completed_at,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  },
+
+  // Subscribe to real-time updates
+  subscribeToRequests(callback: (requests: any[]) => void) {
+    if (!isSupabaseAvailable() || !supabase) {
+      return { unsubscribe: () => {} };
+    }
+
+    return supabase
+      .channel('company_requests')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: TABLES.COMPANY_CANDIDATE_REQUESTS },
+        () => {
+          this.getRequests().then(callback);
+        }
+      )
+      .subscribe();
+  }
+};
+
+// Job Offer Submission Service
+export const jobOfferSubmissionService = {
+  // Create a job offer submission from company
+  async createSubmission(companyId: string, jobData: {
+    title: string;
+    category: string;
+    location: string;
+    description?: string;
+    requirements?: string;
+  }): Promise<any> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, creating mock submission');
+      return { id: Math.random().toString(36).substr(2, 9), companyId, ...jobData, status: 'pending' };
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.JOB_OFFER_SUBMISSIONS)
+      .insert([{
+        company_id: companyId,
+        ...jobData,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return this.transformSubmission(data);
+  },
+
+  // Get all submissions
+  async getSubmissions(status?: string): Promise<any[]> {
+    if (!isSupabaseAvailable() || !supabase) {
+      return [];
+    }
+
+    let query = supabase.from(TABLES.JOB_OFFER_SUBMISSIONS).select('*');
+    
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    query = query.order('created_at', { ascending: false });
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    return (data || []).map(this.transformSubmission);
+  },
+
+  // Update submission status (approve/reject/publish)
+  async updateSubmissionStatus(submissionId: string, status: string, notes?: string): Promise<any> {
+    if (!isSupabaseAvailable() || !supabase) {
+      console.log('Supabase not available, mock update');
+      return { id: submissionId, status };
+    }
+
+    const updateData: any = { status, recruiter_notes: notes };
+    
+    if (status === 'approved') {
+      updateData.approved_at = new Date().toISOString();
+    } else if (status === 'rejected') {
+      updateData.rejected_at = new Date().toISOString();
+    } else if (status === 'published') {
+      updateData.published_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.JOB_OFFER_SUBMISSIONS)
+      .update(updateData)
+      .eq('id', submissionId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return this.transformSubmission(data);
+  },
+
+  // Transform snake_case to camelCase
+  transformSubmission(data: any): any {
+    return {
+      id: data.id,
+      companyId: data.company_id,
+      title: data.title,
+      category: data.category,
+      location: data.location,
+      description: data.description,
+      requirements: data.requirements,
+      status: data.status,
+      recruiterNotes: data.recruiter_notes,
+      createdAt: data.created_at,
+      approvedAt: data.approved_at,
+      rejectedAt: data.rejected_at,
+      publishedAt: data.published_at,
+      updatedAt: data.updated_at
+    };
+  },
+
+  // Subscribe to real-time updates
+  subscribeToSubmissions(callback: (submissions: any[]) => void) {
+    if (!isSupabaseAvailable() || !supabase) {
+      return { unsubscribe: () => {} };
+    }
+
+    return supabase
+      .channel('job_offer_submissions')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: TABLES.JOB_OFFER_SUBMISSIONS },
+        () => {
+          this.getSubmissions().then(callback);
+        }
+      )
+      .subscribe();
+  }
+};
+
+// Email Service (Mock for now - can be replaced with Supabase Edge Function)
+export const emailService = {
+  async sendLoginCredentials(name: string, email: string): Promise<{ email: string; password: string }> {
+    // Generate email from name
+    const nameParts = name.toLowerCase().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts[nameParts.length - 1] || firstName;
+    const generatedEmail = `${firstName}.${lastName}@expatheros.nl`;
+    
+    // Generate random password
+    const password = `ExpatHero${Math.floor(Math.random() * 10000)}!`;
+    
+    // In production, this would call Supabase Edge Function to send email
+    console.log(`📧 Email would be sent to ${email} with login credentials:`);
+    console.log(`   Email: ${generatedEmail}`);
+    console.log(`   Password: ${password}`);
+    
+    // TODO: Create user in Supabase auth with these credentials
+    
+    return { email: generatedEmail, password };
+  }
 }; 

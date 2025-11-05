@@ -28,6 +28,8 @@ export const TABLES = {
   MATERIALS: 'materials',
   PROJECT_MATERIALS: 'project_materials',
   PROJECT_ASSIGNMENTS: 'project_assignments',
+  COMPANY_CANDIDATE_REQUESTS: 'company_candidate_requests',
+  JOB_OFFER_SUBMISSIONS: 'job_offer_submissions',
 } as const;
 
 // Helper to check if Supabase is available

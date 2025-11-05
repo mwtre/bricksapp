@@ -5,7 +5,7 @@ export const mockUsers: User[] = [
     id: '1',
     name: 'Lars Nielsen',
     email: 'lars@expatheros.nl',
-    role: 'bricklayer',
+    role: 'project_manager',
     phone: '+45 12 34 56 78',
     assignedProjects: ['1', '2']
   },
@@ -13,7 +13,7 @@ export const mockUsers: User[] = [
     id: '2',
     name: 'Mette Hansen',
     email: 'mette@expatheros.nl',
-    role: 'project_manager',
+    role: 'bricklayer',
     phone: '+45 87 65 43 21'
   },
   {

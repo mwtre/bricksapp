@@ -125,7 +125,9 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onView, onEdit, onConta
 
   const availabilityStatus = getAvailabilityStatus();
   const currentPortfolioItem = worker.portfolio[currentPortfolioIndex];
-  const hourlyRate = `$${45 + Math.floor(Math.random() * 30)}-${65 + Math.floor(Math.random() * 20)}`;
+  const hourlyRate = worker.hourlyRateMin && worker.hourlyRateMax
+    ? `€${worker.hourlyRateMin.toFixed(2)}-€${worker.hourlyRateMax.toFixed(2)}`
+    : `€${45}-€${65}`;
 
   return (
     <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-700 group hover:border-gray-600">

@@ -3,8 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Login } from './components/Login';
 import { Layout } from './components/Layout';
-import { BricklayerDashboard } from './components/dashboards/BricklayerDashboard';
-import { ProjectManagerDashboard } from './components/dashboards/ProjectManagerDashboard';
+import { HeroesDashboard } from './components/dashboards/HeroesDashboard';
+import { CompanyDashboard } from './components/dashboards/CompanyDashboard';
 import { RecruiterDashboard } from './components/dashboards/RecruiterDashboard';
 import { ProjectsPage } from './components/pages/ProjectsPage';
 import { TeamPage } from './components/pages/TeamPage';
@@ -22,6 +22,7 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [hasSeenLanding, setHasSeenLanding] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   console.log('AppContent: Rendering with user:', user, 'hasSelectedLanguage:', hasSelectedLanguage);
 
@@ -106,7 +107,23 @@ function AppContent() {
       setShowLanding(false);
     };
     
-    return <Landing onContinue={handleLandingContinue} />;
+    const handleApply = () => {
+      setShowApplicationForm(true);
+    };
+    
+    return (
+      <>
+        <Landing onContinue={handleLandingContinue} onApply={handleApply} />
+        {showApplicationForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Apply Now</h3>
+              <RecruitmentForm onClose={() => setShowApplicationForm(false)} />
+            </div>
+          </div>
+        )}
+      </>
+    );
   }
 
   // Show language selection modal if language hasn't been selected
@@ -141,9 +158,9 @@ function AppContent() {
         case 'dashboard':
           switch (user.role) {
             case 'bricklayer':
-              return <BricklayerDashboard />;
+              return <HeroesDashboard />;
             case 'project_manager':
-              return <ProjectManagerDashboard />;
+              return <CompanyDashboard />;
             case 'recruiter':
               return <RecruiterDashboard />;
             default:

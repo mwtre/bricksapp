@@ -63,6 +63,41 @@ export interface Application {
   cvUrl?: string;
   status: 'pending' | 'reviewed' | 'approved' | 'rejected';
   submittedDate: string;
+  jobOfferId?: string;
+  source?: 'direct' | 'job_offer' | 'header_apply';
+}
+
+export interface CompanyCandidateRequest {
+  id: string;
+  companyId: string;
+  workerId: string;
+  status: 'pending' | 'sent_to_candidate' | 'candidate_confirmed' | 'candidate_rejected' | 'completed' | 'cancelled';
+  recruiterNotes?: string;
+  candidateNotes?: string;
+  companyNotes?: string;
+  requestedAt: string;
+  sentToCandidateAt?: string;
+  candidateRespondedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JobOfferSubmission {
+  id: string;
+  companyId: string;
+  title: string;
+  category: string;
+  location: string;
+  description?: string;
+  requirements?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'published';
+  recruiterNotes?: string;
+  createdAt: string;
+  approvedAt?: string;
+  rejectedAt?: string;
+  publishedAt?: string;
+  updatedAt: string;
 }
 
 export interface AuthContextType {
