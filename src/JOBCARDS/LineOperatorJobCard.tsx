@@ -35,18 +35,15 @@ export default function LineOperatorJobCard() {
             </p>
 
             <div className="mt-auto pt-4 border-t-2 border-gray-100">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <Euro className="w-5 h-5 text-red-600 flex-shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">Entry: €2,300–€2,600</span>
-                      <span className="text-sm text-gray-600">Mid: €2,800–€3,600</span>
-                      <span className="text-xs text-gray-500">Senior: €4,000–€4,400</span>
-                    </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Euro className="w-6 h-6 text-red-600 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-gray-900">Entry: €2,300–€2,600</span>
+                    <span className="text-lg font-semibold text-gray-900">Senior: €4,000–€4,400</span>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
                 </div>
+                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>
           </div>

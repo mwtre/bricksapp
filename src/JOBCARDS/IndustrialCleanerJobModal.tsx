@@ -26,18 +26,14 @@ export default function IndustrialCleanerJobModal({ onClose }: IndustrialCleaner
             <div className="relative bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl p-8 text-white shadow-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-6 mb-4">
                   <div className="text-center">
-                    <p className="text-xs text-teal-100/80 mb-1">Entry Level</p>
-                    <p className="text-2xl md:text-3xl font-bold">€2,200–€2,500</p>
-                  </div>
-                  <div className="text-center border-l border-r border-teal-400/30 px-2">
-                    <p className="text-xs text-teal-100/80 mb-1">Mid Level</p>
-                    <p className="text-2xl md:text-3xl font-bold">€2,700–€3,200</p>
+                    <p className="text-sm text-teal-100/90 mb-2">Entry Level</p>
+                    <p className="text-3xl md:text-4xl font-bold">€2,200–€2,500</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-teal-100/80 mb-1">Senior Level</p>
-                    <p className="text-2xl md:text-3xl font-bold">€3,600–€4,000</p>
+                    <p className="text-sm text-teal-100/90 mb-2">Senior Level</p>
+                    <p className="text-3xl md:text-4xl font-bold">€3,600–€4,000</p>
                   </div>
                 </div>
                 <p className="text-xl text-teal-100 mb-1 text-center">Gross per month</p>
