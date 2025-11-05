@@ -35,13 +35,18 @@ export default function CourierJobCard() {
             </p>
 
             <div className="mt-auto pt-4 border-t-2 border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-baseline gap-2">
-                  <Euro className="w-6 h-6 text-orange-600 flex-shrink-0" />
-                  <span className="text-2xl font-bold text-gray-900">€2,426–€2,800</span>
-                  <span className="text-sm text-gray-600">/month</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <Euro className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-500">Entry: €2,000–€2,300</span>
+                      <span className="text-sm text-gray-600">Mid: €2,426–€2,800</span>
+                      <span className="text-xs text-gray-500">Senior: €3,000–€3,400</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all" />
                 </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>
           </div>

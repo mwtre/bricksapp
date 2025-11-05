@@ -26,9 +26,22 @@ export default function BricklayerJobModal({ onClose }: BricklayerJobModalProps)
             <div className="relative bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-8 text-white shadow-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
-                <p className="text-4xl md:text-5xl font-bold mb-2">€2,800–€3,200</p>
-                <p className="text-xl text-red-100 mb-1">Net monthly salary</p>
-                <p className="text-sm text-red-100/90">Full-time · 40 hours/week · Free accommodation</p>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center">
+                    <p className="text-xs text-red-100/80 mb-1">Entry Level</p>
+                    <p className="text-2xl md:text-3xl font-bold">€2,200–€2,500</p>
+                  </div>
+                  <div className="text-center border-l border-r border-red-400/30 px-2">
+                    <p className="text-xs text-red-100/80 mb-1">Mid Level</p>
+                    <p className="text-2xl md:text-3xl font-bold">€2,800–€3,200</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-red-100/80 mb-1">Senior Level</p>
+                    <p className="text-2xl md:text-3xl font-bold">€3,600–€4,000</p>
+                  </div>
+                </div>
+                <p className="text-xl text-red-100 mb-1 text-center">Net monthly salary</p>
+                <p className="text-sm text-red-100/90 text-center">Full-time · 40 hours/week · Free accommodation</p>
               </div>
             </div>
 

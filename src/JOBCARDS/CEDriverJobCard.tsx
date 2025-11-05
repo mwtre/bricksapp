@@ -35,13 +35,18 @@ export default function CEDriverJobCard() {
             </p>
 
             <div className="mt-auto pt-4 border-t-2 border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-baseline gap-2">
-                  <Euro className="w-6 h-6 text-green-600 flex-shrink-0" />
-                  <span className="text-2xl font-bold text-gray-900">€4,212–€4,216</span>
-                  <span className="text-sm text-gray-600">/month</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <Euro className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-500">Entry: €3,500–€3,800</span>
+                      <span className="text-sm text-gray-600">Mid: €4,212–€4,216</span>
+                      <span className="text-xs text-gray-500">Senior: €4,800–€5,200</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all" />
                 </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>
           </div>

@@ -26,9 +26,22 @@ export default function ForkiftJobModal({ onClose }: ForkiftJobModalProps) {
             <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-8 text-white shadow-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
-                <p className="text-4xl md:text-5xl font-bold mb-2">€3,438–€3,800</p>
-                <p className="text-xl text-blue-100 mb-1">Gross per month</p>
-                <p className="text-sm text-blue-100/90">Full-time · 38–40 hours/week · €18.06/hour</p>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center">
+                    <p className="text-xs text-blue-100/80 mb-1">Entry Level</p>
+                    <p className="text-2xl md:text-3xl font-bold">€2,800–€3,100</p>
+                  </div>
+                  <div className="text-center border-l border-r border-blue-400/30 px-2">
+                    <p className="text-xs text-blue-100/80 mb-1">Mid Level</p>
+                    <p className="text-2xl md:text-3xl font-bold">€3,438–€3,800</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-blue-100/80 mb-1">Senior Level</p>
+                    <p className="text-2xl md:text-3xl font-bold">€4,200–€4,600</p>
+                  </div>
+                </div>
+                <p className="text-xl text-blue-100 mb-1 text-center">Gross per month</p>
+                <p className="text-sm text-blue-100/90 text-center">Full-time · 38–40 hours/week · €18.06/hour</p>
               </div>
             </div>
 

@@ -35,13 +35,18 @@ export default function ForkiftJobCard() {
             </p>
 
             <div className="mt-auto pt-4 border-t-2 border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-baseline gap-2">
-                  <Euro className="w-6 h-6 text-blue-600 flex-shrink-0" />
-                  <span className="text-2xl font-bold text-gray-900">€3,438–€3,800</span>
-                  <span className="text-sm text-gray-600">/month</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <Euro className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-500">Entry: €2,800–€3,100</span>
+                      <span className="text-sm text-gray-600">Mid: €3,438–€3,800</span>
+                      <span className="text-xs text-gray-500">Senior: €4,200–€4,600</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
                 </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>
           </div>
